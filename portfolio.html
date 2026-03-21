@@ -723,7 +723,7 @@ function drawDonut(){
     options:{responsive:true,maintainAspectRatio:false,cutout:'72%',plugins:{legend:{display:false},
       tooltip:{backgroundColor:'#111',borderColor:'rgba(255,255,255,.1)',borderWidth:1,titleFont:{family:'JetBrains Mono',size:9},bodyFont:{family:'JetBrains Mono',size:10},titleColor:'rgba(255,255,255,.4)',bodyColor:'#fff',callbacks:{label:i=>`  ${i.label}: ${i.raw}%`}}}}
   });
-  document.getElementById('dleg').innerHTML=items.slice(0,6).map(it=>`<div class="dl"><div class="dl-l"><span class="dl-dot" style="background:${it.c}"></span>${it.sym}</div><span class="dl-v">${(it.val/total*100).toFixed(1)}%</span></div>`).join('');
+  document.getElementById('dleg').innerHTML=items.slice(0,6).map(it=>`<div class="dl"><div class="dl-l"><span class="dl-dot" style="background:${it.c}"></span>${it.sym}</div><span class="dl-v">${(it.val/total*100).toFixed(2)}%</span></div>`).join('');
 }
 
 function drawStats(){
@@ -1165,7 +1165,7 @@ function renderDiv(){
       <div class="dk"><div class="dk-l">Dividendo anual total</div><div class="dk-v">${fmt(total)}</div><div class="dk-s">${fmt(total/12)} / mes estimado</div></div>
       <div class="dk"><div class="dk-l">Yield sobre valor</div><div class="dk-v" style="color:${yc(yldT)}">${yldT.toFixed(2)}%</div><div class="dk-s">precio actual de mercado</div></div>
       <div class="dk"><div class="dk-l">Yield on cost</div><div class="dk-v" style="color:${yc(yoc)}">${yoc.toFixed(2)}%</div><div class="dk-s">sobre precio de compra</div></div>
-      <div class="dk"><div class="dk-l">Con dividendo</div><div class="dk-v">${conDiv} <span style="font-size:12px;font-weight:400;color:var(--fg3)">/ ${pf.length}</span></div><div class="dk-s">${pf.length>0?((conDiv/pf.length)*100).toFixed(0):0}% del portfolio</div></div>
+      <div class="dk"><div class="dk-l">Con dividendo</div><div class="dk-v">${conDiv} <span style="font-size:12px;font-weight:400;color:var(--fg3)">/ ${pf.length}</span></div><div class="dk-s">${pf.length>0?((conDiv/pf.length)*100).toFixed(2):0}% del portfolio</div></div>
     </div>
     <div class="div-grid">
       <div class="tbl-wrap">
@@ -1192,7 +1192,7 @@ function renderDiv(){
               <td>${div>0?`<span class="t-n" style="color:var(--fg2)">${fmt(divT/12)}</span>`:'<span style="color:var(--fg3)">—</span>'}</td>
               <td>${div>0?`<span class="t-n" style="color:${yc(yld)}">${yld.toFixed(2)}%</span>`:'<span style="color:var(--fg3)">—</span>'}</td>
               <td>${div>0?`<span class="t-n" style="color:${yc(yoc2)}">${yoc2.toFixed(2)}%</span>`:'<span style="color:var(--fg3)">—</span>'}</td>
-              <td>${div>0?`<span class="t-n" style="color:${C[i%C.length]}">${peso.toFixed(1)}%</span>`:'<span style="color:var(--fg3)">—</span>'}</td>
+              <td>${div>0?`<span class="t-n" style="color:${C[i%C.length]}">${peso.toFixed(2)}%</span>`:'<span style="color:var(--fg3)">—</span>'}</td>
             </tr>`;
           }).join('')}</tbody>
         </table>
@@ -1205,8 +1205,8 @@ function renderDiv(){
           const yld=gP(p)>0?div/gP(p)*100:0;
           const idx=pf.indexOf(p);
           return`<div>
-            <div class="bar-item-top"><span style="color:var(--fg)">${p.symbol}</span><span style="color:var(--fg3)">${peso.toFixed(1)}%</span></div>
-            <div class="bar-bg"><div class="bar-fill" style="width:${peso.toFixed(1)}%;background:${C[idx%C.length]}"></div></div>
+            <div class="bar-item-top"><span style="color:var(--fg)">${p.symbol}</span><span style="color:var(--fg3)">${peso.toFixed(2)}%</span></div>
+            <div class="bar-bg"><div class="bar-fill" style="width:${peso.toFixed(2)}%;background:${C[idx%C.length]}"></div></div>
             <div class="bar-sub">${fmt(divT)} · ${yld.toFixed(2)}% yield</div>
           </div>`;
         }).join('')||`<div style="font-family:var(--mono);font-size:9px;color:var(--fg3)">Sin datos de dividendos aún</div>`}
