@@ -105,7 +105,7 @@ body{font-family:var(--sans);color:var(--fg);font-size:13px;line-height:1.5}
 .tbl-wrap{background:var(--s1);border:1px solid var(--b1);border-radius:10px;overflow:hidden}
 table{width:100%;border-collapse:collapse;table-layout:fixed}
 thead{background:var(--bg);border-bottom:1px solid var(--b1)}
-th{font-family:var(--mono);font-size:7.5px;letter-spacing:.08em;color:var(--fg3);padding:8px 7px;text-align:right;white-space:nowrap;font-weight:400;overflow:hidden}
+th{font-family:var(--mono);font-size:7.5px;letter-spacing:.08em;color:var(--fg2);padding:8px 7px;text-align:right;white-space:nowrap;font-weight:500;overflow:hidden}
 th:first-child{text-align:left}
 td{padding:8px 7px;border-bottom:1px solid var(--b1);text-align:right;vertical-align:middle;overflow:hidden}
 td:first-child{text-align:left}
@@ -177,6 +177,39 @@ tbody tr:hover{background:var(--s2)}
 @keyframes spin{to{transform:rotate(360deg)}}
 
 .empty{padding:40px;text-align:center;font-family:var(--mono);font-size:10px;color:var(--fg3)}
+
+/* ── WATCHLIST ── */
+.wl-add-row{display:flex;gap:8px;padding:12px 14px;border-bottom:1px solid var(--b1);align-items:center}
+.wl-add-row input{flex:1;padding:7px 10px;font-family:var(--mono);font-size:11px;background:var(--s3);border:1px solid var(--b1);border-radius:var(--r);color:var(--fg);text-transform:uppercase}
+.wl-add-row input:focus{outline:none;border-color:var(--b3)}
+.wl-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:var(--b1);border-bottom:1px solid var(--b1)}
+.wl-row:last-child{border-bottom:none}
+.wl-row:hover{filter:brightness(1.15)}
+.wl-main{background:var(--s1);padding:10px 14px;display:flex;align-items:center;justify-content:space-between}
+.wl-cell{background:var(--s1);padding:8px 14px;display:flex;flex-direction:column;justify-content:center;gap:2px}
+.wl-cell-lbl{font-family:var(--mono);font-size:8px;letter-spacing:.08em;color:var(--fg3)}
+.wl-cell-val{font-family:var(--mono);font-size:11px;color:var(--fg)}
+.wl-cell-sub{font-family:var(--mono);font-size:9px;color:var(--fg3)}
+.wl-ticker{font-family:var(--mono);font-size:12px;font-weight:500;color:var(--fg)}
+.wl-name{font-size:10px;color:var(--fg3);margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:160px}
+.wl-price{font-family:var(--mono);font-size:13px;font-weight:500;text-align:right}
+.wl-chg{font-family:var(--mono);font-size:10px;text-align:right;margin-top:1px}
+.wl-loading{font-family:var(--mono);font-size:9px;color:var(--fg3);padding:20px 14px;text-align:center}
+.wl-section-hd{font-family:var(--mono);font-size:8px;letter-spacing:.1em;color:var(--fg3);padding:6px 14px;background:var(--bg);border-bottom:1px solid var(--b1)}
+.obj-card{background:var(--s1);border:1px solid var(--b1);border-radius:10px;overflow:hidden;margin-top:16px}
+.obj-hd{padding:10px 16px;border-bottom:1px solid var(--b1);display:flex;align-items:center;justify-content:space-between}
+.obj-ttl{font-family:var(--mono);font-size:9px;letter-spacing:.12em;color:var(--fg2)}
+.obj-table{width:100%;border-collapse:collapse}
+.obj-table th{font-family:var(--mono);font-size:8px;letter-spacing:.08em;color:var(--fg2);padding:8px 14px;text-align:right;font-weight:500;border-bottom:1px solid var(--b1);background:var(--bg)}
+.obj-table th:first-child{text-align:left}
+.obj-table td{padding:9px 14px;border-bottom:1px solid var(--b1);text-align:right;font-family:var(--mono);font-size:11px;color:var(--fg)}
+.obj-table td:first-child{text-align:left;color:var(--fg2);font-size:10px}
+.obj-table tbody tr:last-child td{border-bottom:none}
+.obj-table tbody tr:hover{background:var(--s2)}
+.obj-ed{width:80px;padding:4px 6px;font-family:var(--mono);font-size:11px;background:var(--s3);border:1px solid var(--b2);border-radius:4px;color:var(--fg);text-align:right;transition:border-color .1s}
+.obj-ed:focus{outline:none;border-color:var(--b3)}
+.obj-present-ok{color:var(--up);font-weight:500}
+.obj-present-warn{color:var(--dn);font-weight:500}
 
 /* ── MOBILE BOTTOM NAV ── */
 .mob-nav{display:none;position:fixed;bottom:0;left:0;right:0;height:56px;background:var(--s1);border-top:1px solid var(--b1);z-index:200;grid-template-columns:repeat(4,1fr)}
@@ -274,13 +307,13 @@ tbody tr:hover{background:var(--s2)}
       <div class="kpi"><div class="kpi-l">Invertido</div><div class="kpi-v" id="sb-inv">€0</div></div>
       <div class="kpi"><div class="kpi-l">Posiciones</div><div class="kpi-v" id="sb-pos">0</div></div>
       <div class="kpi"><div class="kpi-l">Div. anual</div><div class="kpi-v" id="sb-div">€0</div><div class="kpi-s" id="sb-yld">0.00%</div></div>
-      <div class="kpi"><div class="kpi-l">Mejor hoy</div><div class="kpi-v" id="sb-best">—</div><div class="kpi-s" id="sb-best-c"></div></div>
     </div>
     <div class="nav">
       <button class="nb on" onclick="go('dashboard')"><span class="nb-ic">▲</span>Dashboard</button>
       <button class="nb" onclick="go('posiciones')"><span class="nb-ic">≡</span>Posiciones</button>
       <button class="nb" onclick="go('dividendos')"><span class="nb-ic">%</span>Dividendos</button>
       <button class="nb" onclick="go('historico')"><span class="nb-ic">◷</span>Histórico</button>
+      <button class="nb" onclick="go('watchlist')"><span class="nb-ic">◈</span>Watchlist</button>
       <button class="nb" onclick="go('config')"><span class="nb-ic">⚙</span>API Key</button>
     </div>
   </aside>
@@ -290,17 +323,19 @@ tbody tr:hover{background:var(--s2)}
     <div id="tab-posiciones" class="panel"></div>
     <div id="tab-dividendos" class="panel"></div>
     <div id="tab-historico" class="panel"></div>
+    <div id="tab-watchlist" class="panel"></div>
     <div id="tab-config" class="panel"></div>
   </main>
 </div>
 
 <!-- MOBILE BOTTOM NAV -->
-<nav class="mob-nav" style="grid-template-columns:repeat(5,1fr)">
-  <button class="mob-nb on" onclick="go('dashboard')"><span class="mob-nb-ic">▲</span><span class="mob-nb-lbl">Dashboard</span></button>
-  <button class="mob-nb" onclick="go('posiciones')"><span class="mob-nb-ic">≡</span><span class="mob-nb-lbl">Posiciones</span></button>
-  <button class="mob-nb" onclick="go('dividendos')"><span class="mob-nb-ic">%</span><span class="mob-nb-lbl">Dividendos</span></button>
-  <button class="mob-nb" onclick="go('historico')"><span class="mob-nb-ic">◷</span><span class="mob-nb-lbl">Histórico</span></button>
-  <button class="mob-nb" onclick="go('config')"><span class="mob-nb-ic">⚙</span><span class="mob-nb-lbl">API Key</span></button>
+<nav class="mob-nav" style="grid-template-columns:repeat(6,1fr)">
+  <button class="mob-nb on" onclick="go('dashboard')"><span class="mob-nb-ic">▲</span><span class="mob-nb-lbl">Dash</span></button>
+  <button class="mob-nb" onclick="go('posiciones')"><span class="mob-nb-ic">≡</span><span class="mob-nb-lbl">Pos.</span></button>
+  <button class="mob-nb" onclick="go('dividendos')"><span class="mob-nb-ic">%</span><span class="mob-nb-lbl">Div.</span></button>
+  <button class="mob-nb" onclick="go('historico')"><span class="mob-nb-ic">◷</span><span class="mob-nb-lbl">Hist.</span></button>
+  <button class="mob-nb" onclick="go('watchlist')"><span class="mob-nb-ic">◈</span><span class="mob-nb-lbl">Watch</span></button>
+  <button class="mob-nb" onclick="go('config')"><span class="mob-nb-ic">⚙</span><span class="mob-nb-lbl">API</span></button>
 </nav>
 <script>
 const C=['#4d9fff','#00c97a','#ff9f40','#c084fc','#ff6b6b','#34d399','#60a5fa','#fb923c','#a3e635','#f472b6'];
@@ -483,7 +518,7 @@ function scheduleSnapshot(){
 /* ─── RENDER ─── */
 function renderAll(){
   updateClock();updateSidebar();
-  if(curTab==='dashboard')renderDash();
+  if(curTab==='dashboard'){renderDash()}
   if(curTab==='posiciones')renderPos();
   if(curTab==='dividendos')renderDiv();
   if(curTab==='historico')renderHistorico();
@@ -505,10 +540,6 @@ function updateSidebar(){
   document.getElementById('sb-pos').textContent=pf.length;
   document.getElementById('sb-div').textContent=fmt(m.div,2);
   document.getElementById('sb-yld').textContent=m.yld.toFixed(2)+'% yield';
-  let best=null,bC=-Infinity;
-  pf.forEach(p=>{const c=gC(p);if(c>bC){bC=c;best=p}});
-  if(best){document.getElementById('sb-best').textContent=best.symbol;const bc=document.getElementById('sb-best-c');bc.textContent=fp(bC);bc.style.color=bC>=0?'var(--up)':'var(--dn)'}
-  else{document.getElementById('sb-best').textContent='—';document.getElementById('sb-best-c').textContent=''}
   // Mobile
   const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v};
   set('mob-total','€ '+totalCuenta.toLocaleString('es-ES',{minimumFractionDigits:2,maximumFractionDigits:2,useGrouping:true}));
@@ -559,8 +590,9 @@ function renderDash(){
         <div class="donut-leg" id="dleg"></div>
       </div>
     </div>
-    <div class="stat-row" id="stats"></div>`;
-  setTimeout(()=>{drawLine(aper);drawDonut();drawStats()},30);
+    <div class="stat-row" id="stats"></div>
+    <div id="objetivos-block"></div>`;
+  setTimeout(()=>{drawLine(aper);drawDonut();drawStats();renderObjetivos()},30);
 }
 
 function buildPts(days){
@@ -651,7 +683,114 @@ function drawStats(){
     <div class="sc"><div class="sc-l">Peor posición</div><div class="sc-v" style="color:var(--dn)">${worst?worst.symbol:'—'}</div><div class="sc-s dn">${worst?fp(wP):''}</div></div>`;
 }
 
-/* ─── POSICIONES ─── */
+/* ─── OBJETIVOS 2026 ─── */
+let obj=JSON.parse(localStorage.getItem('pf6_obj')||'{}');
+let wl=JSON.parse(localStorage.getItem('pf6_wl')||'[]'); // [{symbol, name, currency, metrics:{}}]
+let wlLoading={}; // {SYM: true} while fetching
+function saveObj(k,v){obj[k]=parseFloat(v)||0;localStorage.setItem('pf6_obj',JSON.stringify(obj));renderObjetivos()}
+
+function renderObjetivos(){
+  const el=document.getElementById('objetivos-block');
+  if(!el)return;
+
+  const m=calcM();
+  const cash=parseFloat(localStorage.getItem('pf6_cash')||0);
+  const totalCuenta=m.val+cash;
+  const totalVal=m.val||1;
+
+  // Presente calculado
+  const nAcciones=pf.length;
+  const pesos=pf.map(p=>p.shares*gPeur(p)/totalVal*100);
+  const pesoMin=pesos.length?Math.min(...pesos):0;
+  const pesoMax=pesos.length?Math.max(...pesos):0;
+  const pesosSorted=[...pesos].sort((a,b)=>b-a);
+  const top5=pesosSorted.slice(0,5).reduce((s,v)=>s+v,0);
+  const cashPct=totalCuenta>0?cash/totalCuenta*100:0;
+  const divNeto=pf.reduce((s,p)=>s+gD(p)*(1-(parseFloat(p.retencion||0)/100))*p.shares,0);
+
+  // Helper: render present cell with color based on min/max
+  function pCell(val,min,max,isEur=false,isPct=false){
+    const fv=isEur?fmt(val,2):isPct?fmtN(val,2)+'%':fmtN(val,0);
+    let ok=true;
+    if(min!==undefined&&min>0&&val<min)ok=false;
+    if(max!==undefined&&max>0&&val>max)ok=false;
+    const cls=ok?'obj-present-ok':'obj-present-warn';
+    return`<span class="${cls}">${fv}</span>`;
+  }
+
+  function edCell(key,val,placeholder=''){
+    return`<input class="obj-ed" type="number" placeholder="${placeholder}" value="${val||''}" step="any" min="0" onchange="saveObj('${key}',this.value)">`;
+  }
+
+  const rows=[
+    {
+      label:'Acciones',
+      min: edCell('acc_min',obj.acc_min,'15'),
+      present: pCell(nAcciones,obj.acc_min,obj.acc_max),
+      max: edCell('acc_max',obj.acc_max,'25'),
+    },
+    {
+      label:'% mín. en una acción',
+      min: edCell('pmin_min',obj.pmin_min,'2'),
+      present: pCell(pesoMin,obj.pmin_min,undefined,false,true),
+      max: '—',
+    },
+    {
+      label:'% máx. en una acción',
+      min: '—',
+      present: pCell(pesoMax,undefined,obj.pmax_max,false,true),
+      max: edCell('pmax_max',obj.pmax_max,'20'),
+    },
+    {
+      label:'TOP 5',
+      min: edCell('top5_min',obj.top5_min,'40'),
+      present: pCell(top5,obj.top5_min,obj.top5_max,false,true),
+      max: edCell('top5_max',obj.top5_max,'60'),
+    },
+    {
+      label:'Cash %',
+      min: edCell('cash_min',obj.cash_min,'2.5'),
+      present: pCell(cashPct,obj.cash_min,obj.cash_max,false,true),
+      max: edCell('cash_max',obj.cash_max,'7.5'),
+    },
+    {
+      label:'Total Cuenta',
+      min: edCell('tc_min',obj.tc_min,'68000'),
+      present: pCell(totalCuenta,obj.tc_min,undefined,true),
+      max: '—',
+    },
+    {
+      label:'~Dividendo Neto',
+      min: edCell('div_min',obj.div_min,'600'),
+      present: pCell(divNeto,obj.div_min,undefined,true),
+      max: '—',
+    },
+  ];
+
+  el.innerHTML=`
+    <div class="obj-card">
+      <div class="obj-hd">
+        <span class="obj-ttl">Objetivos 2026</span>
+        <span style="font-family:var(--mono);font-size:8px;color:var(--fg3)">Verde = dentro del objetivo · Rojo = fuera del objetivo</span>
+      </div>
+      <table class="obj-table">
+        <thead><tr>
+          <th style="text-align:left">Métrica</th>
+          <th>Mínimo</th>
+          <th>Presente</th>
+          <th>Máximo</th>
+        </tr></thead>
+        <tbody>
+          ${rows.map(r=>`<tr>
+            <td>${r.label}</td>
+            <td>${r.min}</td>
+            <td>${r.present}</td>
+            <td>${r.max}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>`;
+}
 function renderPos(){
   const el=document.getElementById('tab-posiciones');
   const noKey=!fkey;
@@ -693,8 +832,8 @@ function renderPos(){
     const div=gD(p); // EUR per share/year
     const retencPct=parseFloat(p.retencion||0);
     const divNeto=div*(1-retencPct/100);
-    const yld=priceEur>0?divNeto/priceEur*100:0;
-    const yoc=avgPeur(p)>0?divNeto/avgPeur(p)*100:0;
+    const yld=priceEur>0?div/priceEur*100:0;
+    const yoc=avgPeur(p)>0?div/avgPeur(p)*100:0;
     const exchg=p.exchange||'';
 
     const na='<span style="color:var(--fg3)">—</span>';
@@ -746,7 +885,7 @@ function renderPos(){
   const totVal=pf.reduce((s,p)=>s+p.shares*gPeur(p),0);
   const totCost=pf.reduce((s,p)=>s+p.shares*avgPeur(p),0);
   const totReval=totVal-totCost,totRevalP=totCost>0?totReval/totCost*100:0;
-  const totDiv=pf.reduce((s,p)=>s+gD(p)*(1-(parseFloat(p.retencion||0)/100))*p.shares,0);
+  const totDiv=pf.reduce((s,p)=>s+gD(p)*p.shares,0);
   const totYld=totVal>0?totDiv/totVal*100:0;
   const cash=parseFloat(localStorage.getItem('pf6_cash')||0);
   const totalCuenta=totVal+cash;
@@ -1224,9 +1363,173 @@ function deleteHistEntry(d){
   renderHistorico();
   drawLine(aper);
 }
+/* ─── WATCHLIST ─── */
+function saveWl(){localStorage.setItem('pf6_wl',JSON.stringify(wl))}
+
+async function fetchWlSymbol(sym){
+  if(!fkey)return;
+  wlLoading[sym]=true;
+  try{
+    const qr=await fetch(`https://finnhub.io/api/v1/quote?symbol=${sym}&token=${fkey}`);
+    const q=await qr.json();
+    await sleep(150);
+    const mr=await fetch(`https://finnhub.io/api/v1/stock/metric?symbol=${sym}&metric=all&token=${fkey}`);
+    const md=await mr.json();
+    await sleep(150);
+    const m=md.metric||{};
+    const idx=wl.findIndex(w=>w.symbol===sym);
+    if(idx>=0){
+      wl[idx].metrics={
+        price:q.c||0,
+        change:q.pc>0?((q.c-q.pc)/q.pc)*100:0,
+        high52:m['52WeekHigh']||0,
+        low52:m['52WeekLow']||0,
+        per:m.peNormalizedAnnual||m.peTTM||0,
+        evFcf:m.currentEv/m.freeCashFlowTTM||m.pfcfShareTTM||0,
+        debtEquity:m.totalDebt/m.totalEquity||m.netDebtToEquity||0,
+        revenueGrowth5y:m.revenueGrowth5Y||0,
+        epsGrowth5y:m.epsGrowth5Y||0,
+        ytdReturn:m['yearToDatePriceReturnDaily']||0,
+        beta:m.beta||0,
+        divPerShare:m.dividendPerShareAnnual||0,
+        divYield:m.dividendYieldIndicatedAnnual||0,
+      };
+      saveWl();
+    }
+  }catch{}
+  delete wlLoading[sym];
+  if(curTab==='watchlist')renderWatchlist();
+}
+
+async function addWlSymbol(sym){
+  sym=sym.trim().toUpperCase();
+  if(!sym||wl.find(w=>w.symbol===sym))return;
+  // Get profile for name/currency
+  const prof=await fetchProfile(sym);
+  wl.push({symbol:sym,name:prof?.name||sym,currency:prof?.currency||'USD',metrics:{}});
+  saveWl();
+  renderWatchlist();
+  if(fkey)fetchWlSymbol(sym);
+}
+
+function removeWlSymbol(sym){
+  wl=wl.filter(w=>w.symbol!==sym);
+  saveWl();
+  renderWatchlist();
+}
+
+async function refreshWatchlist(){
+  if(!fkey||!wl.length)return;
+  for(const w of wl){
+    await fetchWlSymbol(w.symbol);
+  }
+}
+
+function renderWatchlist(){
+  const el=document.getElementById('tab-watchlist');
+  if(!el)return;
+
+  const na='<span style="color:var(--fg3)">—</span>';
+
+  const rows=wl.map(w=>{
+    const m=w.metrics||{};
+    const cur=w.currency||'USD';
+    const rate=fxRate(cur);
+    const hasData=m.price>0;
+    const chg=m.change||0;
+    const inPf=pf.find(p=>p.symbol===w.symbol);
+    const isLoading=wlLoading[w.symbol];
+
+    // 52w bar position
+    const range52=m.high52-m.low52;
+    const pos52=range52>0?((m.price-m.low52)/range52)*100:50;
+
+    return`<div class="card" style="margin-bottom:10px;overflow:visible">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid var(--b1)">
+        <div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span class="wl-ticker">${w.symbol}</span>
+            ${inPf?`<span class="tag-sm" style="background:var(--up2);color:var(--up)">en cartera</span>`:''}
+            ${isLoading?`<span style="font-family:var(--mono);font-size:9px;color:var(--fg3)">cargando…</span>`:''}
+          </div>
+          <div class="wl-name">${w.name||''}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px">
+          <div style="text-align:right">
+            <div class="wl-price">${hasData?fmtLocal(m.price,cur):'—'}</div>
+            <div class="wl-chg ${chg>=0?'up':'dn'}">${hasData?fp(chg):'—'}</div>
+          </div>
+          <button class="btn btn-rm" style="font-size:11px" onclick="removeWlSymbol('${w.symbol}')">✕</button>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:1px;background:var(--b1);border-bottom:1px solid var(--b1)">
+        <div class="wl-cell">
+          <span class="wl-cell-lbl">PER</span>
+          <span class="wl-cell-val">${m.per>0?fmtN(m.per,1)+'x':na}</span>
+        </div>
+        <div class="wl-cell">
+          <span class="wl-cell-lbl">EV/FCF</span>
+          <span class="wl-cell-val">${m.evFcf>0?fmtN(m.evFcf,1)+'x':na}</span>
+        </div>
+        <div class="wl-cell">
+          <span class="wl-cell-lbl">Deuda/Equity</span>
+          <span class="wl-cell-val">${m.debtEquity?fmtN(m.debtEquity,2)+'x':na}</span>
+        </div>
+        <div class="wl-cell">
+          <span class="wl-cell-lbl">Rev. Growth 5A</span>
+          <span class="wl-cell-val ${m.revenueGrowth5y>0?'up':m.revenueGrowth5y<0?'dn':''}">${m.revenueGrowth5y?fmtN(m.revenueGrowth5y,2)+'%':na}</span>
+        </div>
+        <div class="wl-cell">
+          <span class="wl-cell-lbl">EPS Growth 5A</span>
+          <span class="wl-cell-val ${m.epsGrowth5y>0?'up':m.epsGrowth5y<0?'dn':''}">${m.epsGrowth5y?fmtN(m.epsGrowth5y,2)+'%':na}</span>
+        </div>
+        <div class="wl-cell">
+          <span class="wl-cell-lbl">YTD Return</span>
+          <span class="wl-cell-val ${m.ytdReturn>0?'up':m.ytdReturn<0?'dn':''}">${m.ytdReturn?fmtN(m.ytdReturn,2)+'%':na}</span>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--b1)">
+        <div class="wl-cell" style="grid-column:span 1">
+          <span class="wl-cell-lbl">Rango 52 semanas</span>
+          ${m.high52>0?`
+            <div style="display:flex;align-items:center;gap:6px;margin-top:4px">
+              <span style="font-family:var(--mono);font-size:9px;color:var(--fg3)">${fmtLocal(m.low52,cur,0)}</span>
+              <div style="flex:1;height:3px;background:var(--b2);border-radius:2px;position:relative">
+                <div style="position:absolute;left:${Math.min(Math.max(pos52,2),98)}%;top:-3px;width:7px;height:7px;border-radius:50%;background:var(--fg);transform:translateX(-50%)"></div>
+              </div>
+              <span style="font-family:var(--mono);font-size:9px;color:var(--fg3)">${fmtLocal(m.high52,cur,0)}</span>
+            </div>
+            <span style="font-family:var(--mono);font-size:9px;color:var(--fg3);margin-top:2px">${pos52.toFixed(0)}% del rango · Beta ${m.beta?fmtN(m.beta,2):na}</span>
+          `:`<span class="wl-cell-val">${na}</span>`}
+        </div>
+        <div class="wl-cell">
+          <span class="wl-cell-lbl">Dividendo anual</span>
+          <span class="wl-cell-val">${m.divPerShare>0?fmtLocal(m.divPerShare,cur):na}</span>
+          <span class="wl-cell-sub">${m.divYield>0?fmtN(m.divYield,2)+'% yield':''}</span>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  el.innerHTML=`
+    <div class="sec-row">
+      <span class="sec-l">Watchlist · ${wl.length} acciones</span>
+      ${fkey&&wl.length?`<button class="btn" style="font-family:var(--mono);font-size:9px;padding:5px 10px" onclick="refreshWatchlist()">↺ Actualizar</button>`:''}
+    </div>
+    <div class="card" style="margin-bottom:14px">
+      <div class="wl-add-row">
+        <input id="wl-input" type="text" placeholder="Ticker (AAPL, ASML, SAN.MC…)"
+          onkeydown="if(event.key==='Enter'){addWlSymbol(this.value);this.value=''}">
+        <button class="btn btn-p" style="white-space:nowrap" onclick="addWlSymbol(document.getElementById('wl-input').value);document.getElementById('wl-input').value=''">Añadir</button>
+      </div>
+      ${!fkey?`<div style="font-family:var(--mono);font-size:9px;color:rgba(255,200,0,.7);padding:8px 14px">Configura tu API key en ⚙ para ver los datos en tiempo real</div>`:''}
+    </div>
+    ${wl.length?rows:`<div class="empty" style="background:var(--s1);border:1px solid var(--b1);border-radius:10px">Añade tickers para seguirlos aquí</div>`}`;
+}
+
 function go(t){
   curTab=t;
-  const tabs=['dashboard','posiciones','dividendos','historico','config'];
+  const tabs=['dashboard','posiciones','dividendos','historico','watchlist','config'];
   document.querySelectorAll('.nb').forEach((b,i)=>b.classList.toggle('on',tabs[i]===t));
   document.querySelectorAll('.mob-nb').forEach((b,i)=>b.classList.toggle('on',tabs[i]===t));
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('on'));
@@ -1235,6 +1538,7 @@ function go(t){
   if(t==='posiciones')renderPos();
   if(t==='dividendos')renderDiv();
   if(t==='historico')renderHistorico();
+  if(t==='watchlist')renderWatchlist();
   if(t==='config')renderConfig();
 }
 
