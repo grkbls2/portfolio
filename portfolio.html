@@ -306,7 +306,7 @@ tbody tr:hover{background:var(--s2)}
       <div class="kpi"><div class="kpi-l">Cash</div><div class="kpi-v" id="sb-cash">€0</div></div>
       <div class="kpi"><div class="kpi-l">Invertido</div><div class="kpi-v" id="sb-inv">€0</div></div>
       <div class="kpi"><div class="kpi-l">Posiciones</div><div class="kpi-v" id="sb-pos">0</div></div>
-      <div class="kpi"><div class="kpi-l">Div. anual</div><div class="kpi-v" id="sb-div">€0</div><div class="kpi-s" id="sb-yld">0.00%</div></div>
+      <div class="kpi" style="grid-column:span 2"><div class="kpi-l">Div. anual neto</div><div class="kpi-v" id="sb-div">€0</div><div style="display:flex;gap:12px;margin-top:3px"><div class="kpi-s"><span style="color:var(--fg3)">yield neto </span><span id="sb-yld-net">0,00%</span></div><div class="kpi-s"><span style="color:var(--fg3)">yield bruto </span><span id="sb-yld">0,00%</span></div></div></div>
     </div>
     <div class="nav">
       <button class="nb on" onclick="go('dashboard')"><span class="nb-ic">▲</span>Dashboard</button>
@@ -340,6 +340,16 @@ tbody tr:hover{background:var(--s2)}
 <script>
 const C=['#4d9fff','#00c97a','#ff9f40','#c084fc','#ff6b6b','#34d399','#60a5fa','#fb923c','#a3e635','#f472b6'];
 
+// Returns a logo img element or a monogram fallback, always 20x20
+function logoEl(logo,sym,size=20){
+  if(logo)return`<img src="${logo}" style="width:${size}px;height:${size}px;border-radius:4px;object-fit:contain;background:var(--s3);flex-shrink:0" onerror="this.style.display='none'">`;
+  return`<span style="width:${size}px;height:${size}px;border-radius:4px;background:var(--s3);display:inline-flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:${Math.floor(size*0.4)}px;color:var(--fg3);flex-shrink:0">${(sym||'').slice(0,2)}</span>`;
+}
+function sourceLabel(src){
+  if(!src)return'';
+  return`<span style="font-family:var(--mono);font-size:8px;color:var(--fg3);letter-spacing:.04em">${src==='yahoo'?'Yahoo Finance':'Finnhub'}</span>`;
+}
+
 let pf=JSON.parse(localStorage.getItem('pf6')||'[]');
 let prices={},tgts=JSON.parse(localStorage.getItem('pf6t')||'{}'),divs={};
 // hist: [{d:'2024-01-15', cartera:12000, cash:5000, cuenta:17000}]
@@ -359,6 +369,7 @@ function saveKey(k){fkey=k.trim();localStorage.setItem('fkey6',fkey)}
 // Price in local currency
 function gP(p){return prices[p.symbol]?.price||p.avgPrice}
 // Currency of the stock (default USD)
+function gSource(p){return prices[p.symbol]?.source||''}
 function gCur(p){return prices[p.symbol]?.currency||p.currency||'USD'}
 // FX rate to EUR for a given currency
 function fxRate(cur){if(cur==='EUR')return 1;return fx[cur]||1}
@@ -388,12 +399,38 @@ function calcM(){
 }
 
 /* ─── FETCH ─── */
-async function fetchQuote(sym){
-  const r=await fetch(`https://finnhub.io/api/v1/quote?symbol=${sym}&token=${fkey}`);
+async function fetchQuoteYahoo(sym){
+  // Yahoo Finance uses same ticker format for most exchanges
+  // .MC → works, .L → works, plain US tickers → works
+  const r=await fetch(`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(sym)}?interval=1d&range=2d`);
   const d=await r.json();
-  if(!d.c||d.c===0)throw new Error('no data');
-  const cur=prices[sym]?.currency||'USD';
-  prices[sym]={price:d.c,change:d.pc>0?((d.c-d.pc)/d.pc)*100:0,currency:cur};
+  const meta=d?.chart?.result?.[0]?.meta;
+  if(!meta||!meta.regularMarketPrice)throw new Error('no yahoo data');
+  const price=meta.regularMarketPrice;
+  const prev=meta.chartPreviousClose||meta.previousClose||price;
+  const change=prev>0?((price-prev)/prev)*100:0;
+  const cur=(meta.currency||'USD').toUpperCase();
+  return{price,change,currency:cur};
+}
+
+async function fetchQuote(sym){
+  // Try Finnhub first
+  try{
+    const r=await fetch(`https://finnhub.io/api/v1/quote?symbol=${sym}&token=${fkey}`);
+    const d=await r.json();
+    if(!d.c||d.c===0)throw new Error('no data');
+    const cur=prices[sym]?.currency||'USD';
+    prices[sym]={price:d.c,change:d.pc>0?((d.c-d.pc)/d.pc)*100:0,currency:cur,source:'finnhub'};
+    return;
+  }catch{}
+  // Fallback to Yahoo Finance
+  try{
+    const y=await fetchQuoteYahoo(sym);
+    prices[sym]={...y,source:'yahoo'};
+    // Also update currency on position if missing
+    const idx=pf.findIndex(p=>p.symbol===sym);
+    if(idx>=0&&!pf[idx].currency){pf[idx].currency=y.currency;save()}
+  }catch{}
 }
 
 async function fetchFxRates(){
@@ -433,16 +470,32 @@ async function fetchDividend(sym){
 
 async function fetchProfile(sym){
   if(!fkey)return null;
+  // Try Finnhub first
   try{
     const r=await fetch(`https://finnhub.io/api/v1/stock/profile2?symbol=${sym}&token=${fkey}`);
     const d=await r.json();
-    if(!d||!d.name)return null;
-    const currency=(d.currency||'USD').toUpperCase();
-    // Store currency in prices cache so fetchQuote can use it
-    if(!prices[sym])prices[sym]={price:0,change:0,currency};
-    else prices[sym].currency=currency;
-    return{name:d.name,country:d.country||'',exchange:d.exchange||'',logo:d.logo||'',currency};
-  }catch{return null}
+    if(d&&d.name){
+      const currency=(d.currency||'USD').toUpperCase();
+      if(!prices[sym])prices[sym]={price:0,change:0,currency};
+      else prices[sym].currency=currency;
+      return{name:d.name,country:d.country||'',exchange:d.exchange||'',logo:d.logo||'',currency};
+    }
+  }catch{}
+  // Fallback to Yahoo Finance for name and currency
+  try{
+    const r=await fetch(`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(sym)}?interval=1d&range=1d`);
+    const d=await r.json();
+    const meta=d?.chart?.result?.[0]?.meta;
+    if(meta){
+      const currency=(meta.currency||'EUR').toUpperCase();
+      const name=meta.longName||meta.shortName||sym;
+      const exchange=meta.exchangeName||'';
+      if(!prices[sym])prices[sym]={price:0,change:0,currency};
+      else prices[sym].currency=currency;
+      return{name,country:'',exchange,logo:'',currency,source:'yahoo'};
+    }
+  }catch{}
+  return null;
 }
 
 async function fetchAll(){
@@ -455,7 +508,11 @@ async function fetchAll(){
       const prof=await fetchProfile(sym);
       if(prof){
         const idx=pf.findIndex(p=>p.symbol===sym);
-        if(idx>=0&&!pf[idx].currency){pf[idx].currency=prof.currency;save()}
+        if(idx>=0){
+          if(!pf[idx].currency)pf[idx].currency=prof.currency;
+          if(!pf[idx].logo&&prof.logo)pf[idx].logo=prof.logo;
+          save();
+        }
       }
       await sleep(120);
     }
@@ -530,6 +587,9 @@ function updateSidebar(){
   const m=calcM();
   const cash=parseFloat(localStorage.getItem('pf6_cash')||0);
   const totalCuenta=m.val+cash;
+  // Net dividend (after retentions)
+  const divNeto=pf.reduce((s,p)=>s+gD(p)*(1-(parseFloat(p.retencion||0)/100))*p.shares,0);
+  const yldNeto=m.val>0?divNeto/m.val*100:0;
   // Desktop
   document.getElementById('sb-total').textContent='€ '+totalCuenta.toLocaleString('es-ES',{minimumFractionDigits:2,maximumFractionDigits:2,useGrouping:true});
   const pill=document.getElementById('sb-pill');pill.textContent=fp(m.gainP);pill.className='pill '+(m.gain>=0?'pill-up':'pill-dn');
@@ -538,8 +598,9 @@ function updateSidebar(){
   document.getElementById('sb-cash').textContent=fmt(cash,2);
   document.getElementById('sb-inv').textContent=fmt(m.inv,2);
   document.getElementById('sb-pos').textContent=pf.length;
-  document.getElementById('sb-div').textContent=fmt(m.div,2);
-  document.getElementById('sb-yld').textContent=m.yld.toFixed(2)+'% yield';
+  document.getElementById('sb-div').textContent=fmt(divNeto,2);
+  document.getElementById('sb-yld').textContent=fmtN(m.yld,2)+'%';
+  const yn=document.getElementById('sb-yld-net');if(yn)yn.textContent=fmtN(yldNeto,2)+'%';
   // Mobile
   const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v};
   set('mob-total','€ '+totalCuenta.toLocaleString('es-ES',{minimumFractionDigits:2,maximumFractionDigits:2,useGrouping:true}));
@@ -547,7 +608,7 @@ function updateSidebar(){
   set('mob-abs',(m.gain>=0?'+':'')+fmt(m.gain)+' cartera');
   set('mob-cartera',fmt(m.val,2));
   set('mob-cash',fmt(cash,2));
-  set('mob-div',fmt(m.div,2));
+  set('mob-div',fmt(divNeto,2));
 }
 
 /* ─── DASHBOARD ─── */
@@ -850,11 +911,17 @@ function renderPos(){
 
     return`<tr>
       <td style="text-align:left">
-        <div style="font-size:11px;font-weight:500;color:var(--fg);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.name||p.symbol}</div>
-        <div style="display:flex;gap:3px;margin-top:2px;flex-wrap:nowrap;overflow:hidden">
-          <span class="tag-sm">${p.symbol}</span>
-          ${exchg?`<span class="tag-sm">${exchg}</span>`:''}
-          ${p.country?`<span class="tag-sm">${p.country}</span>`:''}
+        <div style="display:flex;align-items:center;gap:8px">
+          ${logoEl(p.logo,p.symbol)}
+          <div style="overflow:hidden">
+            <div style="font-size:11px;font-weight:500;color:var(--fg);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.name||p.symbol}</div>
+            <div style="display:flex;gap:3px;margin-top:2px;flex-wrap:nowrap;overflow:hidden;align-items:center">
+              <span class="tag-sm">${p.symbol}</span>
+              ${exchg?`<span class="tag-sm">${exchg}</span>`:''}
+              ${p.country?`<span class="tag-sm">${p.country}</span>`:''}
+            </div>
+            ${sourceLabel(gSource(p))}
+          </div>
         </div>
       </td>
       <td><input class="ed" type="number" min="0" step="any"
@@ -1017,12 +1084,16 @@ function renderPos(){
         const retencPct=parseFloat(p.retencion||0);
         return`<div class="pos-card">
           <div class="pos-card-top">
-            <div>
-              <div class="pos-card-name">${p.name||p.symbol}</div>
-              <div class="pos-card-tags">
-                <span class="tag-sm">${p.symbol}</span>
-                ${p.country?`<span class="tag-sm">${p.country}</span>`:''}
-                <span class="tag-sm">${cur}</span>
+            <div style="display:flex;align-items:flex-start;gap:8px">
+              ${logoEl(p.logo,p.symbol,24)}
+              <div>
+                <div class="pos-card-name">${p.name||p.symbol}</div>
+                <div class="pos-card-tags">
+                  <span class="tag-sm">${p.symbol}</span>
+                  ${p.country?`<span class="tag-sm">${p.country}</span>`:''}
+                  <span class="tag-sm">${cur}</span>
+                </div>
+                ${sourceLabel(gSource(p))}
               </div>
             </div>
             <div style="text-align:right">
@@ -1107,7 +1178,15 @@ function renderDiv(){
             const yld=price>0?div/price*100:0,yoc2=avgPeur(p)>0?div/avgPeur(p)*100:0;
             const peso=total>0?divT/total*100:0;
             return`<tr>
-              <td><div style="display:flex;align-items:center;gap:8px"><span style="width:6px;height:6px;border-radius:50%;background:${C[i%C.length]};flex-shrink:0"></span><div><div class="t-sym">${p.symbol}</div><div class="t-name">${p.name||''}${p.country?` · ${p.country}`:''}</div></div></div></td>
+              <td><div style="display:flex;align-items:center;gap:8px">
+                <span style="width:6px;height:6px;border-radius:50%;background:${C[i%C.length]};flex-shrink:0"></span>
+                ${logoEl(p.logo,p.symbol,18)}
+                <div>
+                  <div class="t-sym">${p.symbol}</div>
+                  <div class="t-name">${p.name||''}${p.country?` · ${p.country}`:''}</div>
+                  ${sourceLabel(gSource(p))}
+                </div>
+              </div></td>
               <td>${div>0?`<span class="t-n">${fmt(div)}</span>`:'<span style="color:var(--fg3)">—</span>'}</td>
               <td>${div>0?`<span class="t-n">${fmt(divT)}</span>`:'<span style="color:var(--fg3)">—</span>'}</td>
               <td>${div>0?`<span class="t-n" style="color:var(--fg2)">${fmt(divT/12)}</span>`:'<span style="color:var(--fg3)">—</span>'}</td>
@@ -1212,13 +1291,14 @@ async function addPos(){
   const name=profile?.name||sym;
   const country=profile?.country||'';
   const currency=(profile?.currency||'USD').toUpperCase();
+  const logo=profile?.logo||'';
   const ex=pf.findIndex(p=>p.symbol===sym);
   if(ex>=0){
     const o=pf[ex];const ts=o.shares+shares;
-    pf[ex]={...o,shares:ts,avgPrice:parseFloat(((o.shares*o.avgPrice+shares*avgPrice)/ts).toFixed(6)),name,country,currency};
+    pf[ex]={...o,shares:ts,avgPrice:parseFloat(((o.shares*o.avgPrice+shares*avgPrice)/ts).toFixed(6)),name,country,currency,logo};
     msg.textContent='Actualizado';
   }else{
-    pf.push({symbol:sym,name,country,currency,shares,avgPrice});
+    pf.push({symbol:sym,name,country,currency,logo,shares,avgPrice});
     msg.textContent='Añadido';
   }
   msg.style.color='var(--up)';save();
@@ -1370,9 +1450,19 @@ async function fetchWlSymbol(sym){
   if(!fkey)return;
   wlLoading[sym]=true;
   try{
-    const qr=await fetch(`https://finnhub.io/api/v1/quote?symbol=${sym}&token=${fkey}`);
-    const q=await qr.json();
+    // Quote — try Finnhub, fall back to Yahoo
+    let price=0,change=0,priceSource='finnhub';
+    try{
+      const qr=await fetch(`https://finnhub.io/api/v1/quote?symbol=${sym}&token=${fkey}`);
+      const q=await qr.json();
+      if(q.c&&q.c>0){price=q.c;change=q.pc>0?((q.c-q.pc)/q.pc)*100:0}
+      else throw new Error('no data');
+    }catch{
+      const y=await fetchQuoteYahoo(sym);
+      price=y.price;change=y.change;priceSource='yahoo';
+    }
     await sleep(150);
+    // Metrics from Finnhub (no Yahoo equivalent for fundamentals)
     const mr=await fetch(`https://finnhub.io/api/v1/stock/metric?symbol=${sym}&metric=all&token=${fkey}`);
     const md=await mr.json();
     await sleep(150);
@@ -1380,8 +1470,7 @@ async function fetchWlSymbol(sym){
     const idx=wl.findIndex(w=>w.symbol===sym);
     if(idx>=0){
       wl[idx].metrics={
-        price:q.c||0,
-        change:q.pc>0?((q.c-q.pc)/q.pc)*100:0,
+        price,change,source:priceSource,
         high52:m['52WeekHigh']||0,
         low52:m['52WeekLow']||0,
         per:m.peNormalizedAnnual||m.peTTM||0,
@@ -1406,7 +1495,7 @@ async function addWlSymbol(sym){
   if(!sym||wl.find(w=>w.symbol===sym))return;
   // Get profile for name/currency
   const prof=await fetchProfile(sym);
-  wl.push({symbol:sym,name:prof?.name||sym,currency:prof?.currency||'USD',metrics:{}});
+  wl.push({symbol:sym,name:prof?.name||sym,currency:prof?.currency||'USD',logo:prof?.logo||'',metrics:{}});
   saveWl();
   renderWatchlist();
   if(fkey)fetchWlSymbol(sym);
@@ -1446,13 +1535,17 @@ function renderWatchlist(){
 
     return`<div class="card" style="margin-bottom:10px;overflow:visible">
       <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid var(--b1)">
-        <div>
-          <div style="display:flex;align-items:center;gap:8px">
-            <span class="wl-ticker">${w.symbol}</span>
-            ${inPf?`<span class="tag-sm" style="background:var(--up2);color:var(--up)">en cartera</span>`:''}
-            ${isLoading?`<span style="font-family:var(--mono);font-size:9px;color:var(--fg3)">cargando…</span>`:''}
+        <div style="display:flex;align-items:center;gap:10px">
+          ${logoEl(w.logo||'',w.symbol,28)}
+          <div>
+            <div style="display:flex;align-items:center;gap:8px">
+              <span class="wl-ticker">${w.symbol}</span>
+              ${inPf?`<span class="tag-sm" style="background:var(--up2);color:var(--up)">en cartera</span>`:''}
+              ${isLoading?`<span style="font-family:var(--mono);font-size:9px;color:var(--fg3)">cargando…</span>`:''}
+            </div>
+            <div class="wl-name">${w.name||''}</div>
+            ${w.metrics?.price>0?sourceLabel(w.metrics?.source||'finnhub'):''}
           </div>
-          <div class="wl-name">${w.name||''}</div>
         </div>
         <div style="display:flex;align-items:center;gap:12px">
           <div style="text-align:right">
