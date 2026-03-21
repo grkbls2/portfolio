@@ -124,6 +124,8 @@ tbody tr:hover{background:var(--s2)}
 .no-key-bar{background:rgba(255,200,0,.07);border-bottom:1px solid rgba(255,200,0,.15);padding:7px 12px;font-family:var(--mono);font-size:8px;color:rgba(255,200,0,.7)}
 .mn{font-family:var(--mono);font-size:10px}
 .mn2{font-family:var(--mono);font-size:8px;color:var(--fg3)}
+.up.mn2,.mn2.up{color:var(--up)}
+.dn.mn2,.mn2.dn{color:var(--dn)}
 .gold{color:rgba(255,200,0,.9)}
 .tag-sm{font-family:var(--mono);font-size:7px;padding:1px 4px;border-radius:3px;background:var(--b1);color:var(--fg3);white-space:nowrap}
 .add-form{background:var(--s1);border:1px solid var(--b1);border-radius:10px;margin-bottom:12px;overflow:hidden}
@@ -310,7 +312,7 @@ tbody tr:hover{background:var(--s2)}
     <div class="nav">
       <button class="nb on" onclick="go('dashboard')"><span class="nb-ic">▲</span>Dashboard</button>
       <button class="nb" onclick="go('posiciones')"><span class="nb-ic">≡</span>Posiciones</button>
-      <button class="nb" onclick="go('dividendos')"><span class="nb-ic">%</span>Dividendos</button>
+      
       <button class="nb" onclick="go('historico')"><span class="nb-ic">◷</span>Histórico</button>
       <button class="nb" onclick="go('watchlist')"><span class="nb-ic">◈</span>Watchlist</button>
       <button class="nb" onclick="go('config')"><span class="nb-ic">⚙</span>API Key</button>
@@ -320,7 +322,6 @@ tbody tr:hover{background:var(--s2)}
   <main class="main">
     <div id="tab-dashboard" class="panel on"></div>
     <div id="tab-posiciones" class="panel"></div>
-    <div id="tab-dividendos" class="panel"></div>
     <div id="tab-historico" class="panel"></div>
     <div id="tab-watchlist" class="panel"></div>
     <div id="tab-config" class="panel"></div>
@@ -331,7 +332,7 @@ tbody tr:hover{background:var(--s2)}
 <nav class="mob-nav" style="grid-template-columns:repeat(6,1fr)">
   <button class="mob-nb on" onclick="go('dashboard')"><span class="mob-nb-ic">▲</span><span class="mob-nb-lbl">Dash</span></button>
   <button class="mob-nb" onclick="go('posiciones')"><span class="mob-nb-ic">≡</span><span class="mob-nb-lbl">Pos.</span></button>
-  <button class="mob-nb" onclick="go('dividendos')"><span class="mob-nb-ic">%</span><span class="mob-nb-lbl">Div.</span></button>
+  
   <button class="mob-nb" onclick="go('historico')"><span class="mob-nb-ic">◷</span><span class="mob-nb-lbl">Hist.</span></button>
   <button class="mob-nb" onclick="go('watchlist')"><span class="mob-nb-ic">◈</span><span class="mob-nb-lbl">Watch</span></button>
   <button class="mob-nb" onclick="go('config')"><span class="mob-nb-ic">⚙</span><span class="mob-nb-lbl">API</span></button>
@@ -399,17 +400,15 @@ function calcM(){
 
 /* ─── FETCH ─── */
 async function fetchQuoteYahoo(sym){
-  // Yahoo Finance uses same ticker format for most exchanges
-  // .MC → works, .L → works, plain US tickers → works
-  const r=await fetch(`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(sym)}?interval=1d&range=2d`);
+  const r=await fetch(`https://query1.finance.yahoo.com/v7/finance/quote?symbols=${encodeURIComponent(sym)}&fields=regularMarketPrice,regularMarketPreviousClose,currency,longName,shortName`);
   const d=await r.json();
-  const meta=d?.chart?.result?.[0]?.meta;
-  if(!meta||!meta.regularMarketPrice)throw new Error('no yahoo data');
-  const price=meta.regularMarketPrice;
-  const prev=meta.chartPreviousClose||meta.previousClose||price;
+  const q=d?.quoteResponse?.result?.[0];
+  if(!q||!q.regularMarketPrice)throw new Error('no yahoo data');
+  const price=q.regularMarketPrice;
+  const prev=q.regularMarketPreviousClose||price;
   const change=prev>0?((price-prev)/prev)*100:0;
-  const cur=(meta.currency||'USD').toUpperCase();
-  return{price,change,currency:cur};
+  const cur=(q.currency||'EUR').toUpperCase();
+  return{price,change,currency:cur,name:q.longName||q.shortName||sym};
 }
 
 async function fetchQuote(sym){
@@ -482,13 +481,13 @@ async function fetchProfile(sym){
   }catch{}
   // Fallback to Yahoo Finance for name and currency
   try{
-    const r=await fetch(`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(sym)}?interval=1d&range=1d`);
+    const r=await fetch(`https://query1.finance.yahoo.com/v7/finance/quote?symbols=${encodeURIComponent(sym)}&fields=regularMarketPrice,currency,longName,shortName,fullExchangeName`);
     const d=await r.json();
-    const meta=d?.chart?.result?.[0]?.meta;
-    if(meta){
-      const currency=(meta.currency||'EUR').toUpperCase();
-      const name=meta.longName||meta.shortName||sym;
-      const exchange=meta.exchangeName||'';
+    const q=d?.quoteResponse?.result?.[0];
+    if(q){
+      const currency=(q.currency||'EUR').toUpperCase();
+      const name=q.longName||q.shortName||sym;
+      const exchange=q.fullExchangeName||'';
       if(!prices[sym])prices[sym]={price:0,change:0,currency};
       else prices[sym].currency=currency;
       return{name,country:'',exchange,logo:'',currency,source:'yahoo'};
@@ -576,7 +575,6 @@ function renderAll(){
   updateClock();updateSidebar();
   if(curTab==='dashboard'){renderDash()}
   if(curTab==='posiciones')renderPos();
-  if(curTab==='dividendos')renderDiv();
   if(curTab==='historico')renderHistorico();
 }
 
@@ -903,7 +901,7 @@ function renderPos(){
     const yocFmt=div>0?`<span class="mn ${yoc>=3?'up':''}">${yoc.toFixed(2)}%</span>`:na;
     const divNetoPos=divNeto*p.shares;
     const pctDiv=divNetoPos>0&&totDivNeto>1?divNetoPos/totDivNeto*100:0;
-    const pctDivFmt=pctDiv>0?`<span class="mn">${fmtN(pctDiv,1)}%</span>`:na;
+    const pctDivFmt=pctDiv>0?`<span class="mn">${fmtN(pctDiv,2)}%</span>`:na;
 
     return`<tr>
       <td style="text-align:left">
@@ -970,12 +968,7 @@ function renderPos(){
       <td></td><td></td><td></td><td></td>
       <td><span class="mn">${fmt(totVal,2)}</span></td>
       <td><span class="mn ${totReval>=0?'up':'dn'}">${fmt(totReval,2)}</span><span class="mn2 ${totReval>=0?'up':'dn'}"> ${fp(totRevalP)}</span></td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td><span class="mn ${totYld>=3?'up':''}">${totYld.toFixed(2)}%</span></td>
-      <td></td>
-      <td></td><td></td>
+      <td></td><td></td><td></td><td></td><td></td><td></td><td></td>
     </tr>
     <tr style="background:var(--s2)">
       <td style="text-align:left" colspan="5">
@@ -1062,8 +1055,8 @@ function renderPos(){
             <th>Div. (€)</th>
             <th>Ret. %</th>
             <th>Yield</th>
-            <th>YoC</th>
-            <th>%Div</th>
+            <th>Yield on Cost</th>
+            <th>Peso Dividendo (%)</th>
             <th></th>
           </tr></thead>
           <tbody>${rows}${totRow}</tbody>
@@ -1622,14 +1615,13 @@ function renderWatchlist(){
 
 function go(t){
   curTab=t;
-  const tabs=['dashboard','posiciones','dividendos','historico','watchlist','config'];
+  const tabs=['dashboard','posiciones','historico','watchlist','config'];
   document.querySelectorAll('.nb').forEach((b,i)=>b.classList.toggle('on',tabs[i]===t));
   document.querySelectorAll('.mob-nb').forEach((b,i)=>b.classList.toggle('on',tabs[i]===t));
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('on'));
   document.getElementById('tab-'+t).classList.add('on');
   if(t==='dashboard')renderDash();
   if(t==='posiciones')renderPos();
-  if(t==='dividendos')renderDiv();
   if(t==='historico')renderHistorico();
   if(t==='watchlist')renderWatchlist();
   if(t==='config')renderConfig();
