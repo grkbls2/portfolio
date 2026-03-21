@@ -400,25 +400,21 @@ function calcM(){
 
 /* ─── FETCH ─── */
 async function fetchQuoteYahoo(sym){
-  // Try query1 first, then query2
-  const urls=[
-    `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${encodeURIComponent(sym)}&fields=regularMarketPrice,regularMarketPreviousClose,currency,longName,shortName`,
-    `https://query2.finance.yahoo.com/v7/finance/quote?symbols=${encodeURIComponent(sym)}&fields=regularMarketPrice,regularMarketPreviousClose,currency,longName,shortName`
-  ];
-  for(const url of urls){
-    try{
-      const r=await fetch(url);
-      const d=await r.json();
-      const q=d?.quoteResponse?.result?.[0];
-      if(q&&q.regularMarketPrice){
-        const price=q.regularMarketPrice;
-        const prev=q.regularMarketPreviousClose||price;
-        const change=prev>0?((price-prev)/prev)*100:0;
-        const cur=(q.currency||'EUR').toUpperCase();
-        return{price,change,currency:cur,name:q.longName||q.shortName||sym};
-      }
-    }catch{}
-  }
+  const yahooUrl=`https://query1.finance.yahoo.com/v7/finance/quote?symbols=${encodeURIComponent(sym)}&fields=regularMarketPrice,regularMarketPreviousClose,currency,longName,shortName`;
+  const proxyUrl=`https://api.allorigins.win/get?url=${encodeURIComponent(yahooUrl)}`;
+  try{
+    const r=await fetch(proxyUrl);
+    const outer=await r.json();
+    const d=JSON.parse(outer.contents);
+    const q=d?.quoteResponse?.result?.[0];
+    if(q&&q.regularMarketPrice){
+      const price=q.regularMarketPrice;
+      const prev=q.regularMarketPreviousClose||price;
+      const change=prev>0?((price-prev)/prev)*100:0;
+      const cur=(q.currency||'EUR').toUpperCase();
+      return{price,change,currency:cur,name:q.longName||q.shortName||sym};
+    }
+  }catch{}
   throw new Error('no yahoo data');
 }
 
@@ -490,10 +486,13 @@ async function fetchProfile(sym){
       return{name:d.name,country:d.country||'',exchange:d.exchange||'',logo:d.logo||'',currency};
     }
   }catch{}
-  // Fallback to Yahoo Finance for name and currency
+  // Fallback to Yahoo Finance via proxy for name and currency
   try{
-    const r=await fetch(`https://query1.finance.yahoo.com/v7/finance/quote?symbols=${encodeURIComponent(sym)}&fields=regularMarketPrice,currency,longName,shortName,fullExchangeName`);
-    const d=await r.json();
+    const yahooUrl=`https://query1.finance.yahoo.com/v7/finance/quote?symbols=${encodeURIComponent(sym)}&fields=regularMarketPrice,currency,longName,shortName,fullExchangeName`;
+    const proxyUrl=`https://api.allorigins.win/get?url=${encodeURIComponent(yahooUrl)}`;
+    const r=await fetch(proxyUrl);
+    const outer=await r.json();
+    const d=JSON.parse(outer.contents);
     const q=d?.quoteResponse?.result?.[0];
     if(q){
       const currency=(q.currency||'EUR').toUpperCase();
