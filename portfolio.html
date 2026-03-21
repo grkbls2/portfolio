@@ -63,8 +63,9 @@ body{font-family:var(--sans);color:var(--fg);font-size:13px;line-height:1.5}
 
 /* ── MAIN ── */
 .main{overflow-y:auto;background:var(--bg)}
-.panel{display:none;padding:24px}
+.panel{display:none;padding:20px}
 .panel.on{display:block}
+#tab-posiciones{padding:16px}
 
 /* ── DASHBOARD ── */
 .dash-grid{display:grid;grid-template-columns:1fr 280px;gap:16px;margin-bottom:16px}
@@ -99,32 +100,32 @@ body{font-family:var(--sans);color:var(--fg);font-size:13px;line-height:1.5}
 .sc-s{font-family:var(--mono);font-size:9px;margin-top:3px;color:var(--fg3)}
 
 /* ── TABLE ── */
-.sec-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.sec-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
 .sec-l{font-family:var(--mono);font-size:9px;letter-spacing:.12em;color:var(--fg3)}
-.tbl-wrap{background:var(--s1);border:1px solid var(--b1);border-radius:10px;overflow:hidden;overflow-x:auto}
-table{width:100%;border-collapse:collapse;min-width:1100px}
+.tbl-wrap{background:var(--s1);border:1px solid var(--b1);border-radius:10px;overflow:hidden}
+table{width:100%;border-collapse:collapse;table-layout:fixed}
 thead{background:var(--bg);border-bottom:1px solid var(--b1)}
-th{font-family:var(--mono);font-size:8px;letter-spacing:.1em;color:var(--fg3);padding:10px 14px;text-align:right;white-space:nowrap;font-weight:400}
+th{font-family:var(--mono);font-size:7.5px;letter-spacing:.08em;color:var(--fg3);padding:8px 7px;text-align:right;white-space:nowrap;font-weight:400;overflow:hidden}
 th:first-child{text-align:left}
-td{padding:11px 14px;border-bottom:1px solid var(--b1);text-align:right;vertical-align:middle}
+td{padding:8px 7px;border-bottom:1px solid var(--b1);text-align:right;vertical-align:middle;overflow:hidden}
 td:first-child{text-align:left}
 tbody tr:last-child td{border-bottom:none}
 tbody tr:hover{background:var(--s2)}
-.t-sym{font-family:var(--mono);font-size:12px;font-weight:500}
-.t-name{font-size:10px;color:var(--fg3);margin-top:2px}
-.t-n{font-family:var(--mono);font-size:11px}
-.t-s{font-family:var(--mono);font-size:9px;margin-top:2px;color:var(--fg3)}
+.t-sym{font-family:var(--mono);font-size:10px;font-weight:500}
+.t-name{font-size:9px;color:var(--fg3);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.t-n{font-family:var(--mono);font-size:10px}
+.t-s{font-family:var(--mono);font-size:8px;margin-top:1px;color:var(--fg3)}
 .up{color:var(--up)}.dn{color:var(--dn)}
-.upside{display:inline-block;font-family:var(--mono);font-size:10px;padding:2px 7px;border-radius:20px;font-weight:500}
+.upside{display:inline-block;font-family:var(--mono);font-size:9px;padding:2px 6px;border-radius:20px;font-weight:500}
 .upside.up{background:var(--up2);color:var(--up)}.upside.dn{background:var(--dn2);color:var(--dn)}
-.ed{width:76px;padding:5px 7px;font-family:var(--mono);font-size:10px;background:var(--s3);border:1px solid var(--b2);border-radius:4px;color:var(--fg);text-align:right;transition:border-color .1s}
+.ed{width:52px;padding:4px 5px;font-family:var(--mono);font-size:9px;background:var(--s3);border:1px solid var(--b2);border-radius:4px;color:var(--fg);text-align:right;transition:border-color .1s}
 .ed:focus{outline:none;border-color:var(--b3)}
-.tbl-hint{font-family:var(--mono);font-size:8px;color:var(--fg3);padding:8px 14px;border-top:1px solid var(--b1)}
-.no-key-bar{background:rgba(255,200,0,.07);border-bottom:1px solid rgba(255,200,0,.15);padding:8px 14px;font-family:var(--mono);font-size:9px;color:rgba(255,200,0,.7)}
-.mn{font-family:var(--mono);font-size:11px}
-.mn2{font-family:var(--mono);font-size:9px;color:var(--fg3)}
+.tbl-hint{font-family:var(--mono);font-size:7.5px;color:var(--fg3);padding:7px 12px;border-top:1px solid var(--b1)}
+.no-key-bar{background:rgba(255,200,0,.07);border-bottom:1px solid rgba(255,200,0,.15);padding:7px 12px;font-family:var(--mono);font-size:8px;color:rgba(255,200,0,.7)}
+.mn{font-family:var(--mono);font-size:10px}
+.mn2{font-family:var(--mono);font-size:8px;color:var(--fg3)}
 .gold{color:rgba(255,200,0,.9)}
-.tag-sm{font-family:var(--mono);font-size:8px;padding:1px 5px;border-radius:3px;background:var(--b1);color:var(--fg3);white-space:nowrap}
+.tag-sm{font-family:var(--mono);font-size:7px;padding:1px 4px;border-radius:3px;background:var(--b1);color:var(--fg3);white-space:nowrap}
 .lookup-card{background:var(--s2);border:1px solid var(--b2);border-radius:8px;padding:12px 14px;margin-top:10px;display:none;align-items:center;gap:14px}
 .lookup-card.show{display:flex}
 .lookup-logo{width:32px;height:32px;border-radius:6px;background:var(--s3);border:1px solid var(--b1);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0}
@@ -525,17 +526,26 @@ function renderPos(){
     const yocFmt=div>0?`<span class="mn ${yoc>=3?'up':yoc>=1?'gold':''}">${yoc.toFixed(2)}%</span>`:na;
 
     return`<tr>
-      <td style="text-align:left;min-width:160px">
-        <div style="font-size:12px;font-weight:500;color:var(--fg)">${p.name||p.symbol}</div>
-        <div style="display:flex;gap:5px;margin-top:3px;align-items:center;flex-wrap:wrap">
+      <td style="text-align:left">
+        <div style="font-size:11px;font-weight:500;color:var(--fg);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.name||p.symbol}</div>
+        <div style="display:flex;gap:3px;margin-top:2px;flex-wrap:nowrap;overflow:hidden">
           <span class="tag-sm">${p.symbol}</span>
           ${exchg?`<span class="tag-sm">${exchg}</span>`:''}
           ${p.country?`<span class="tag-sm">${p.country}</span>`:''}
         </div>
       </td>
-      <td><span class="mn">${p.shares.toLocaleString('es-ES',{maximumFractionDigits:4})}</span></td>
+      <td><input class="ed" type="number" min="0" step="any"
+        value="${p.shares}"
+        onchange="saveShares('${p.symbol}',this.value)"
+        style="width:100%;text-align:right"></td>
       <td>${priceFmt}</td>
-      <td>${bepFmt}<div class="mn2">${cur}</div></td>
+      <td>
+        <input class="ed" type="number" min="0" step="any"
+          value="${bep}"
+          onchange="saveBep('${p.symbol}',this.value)"
+          style="width:100%;text-align:right">
+        <div class="mn2">${cur}</div>
+      </td>
       <td>${chgFmt}</td>
       <td>${valFmt}</td>
       <td>${revalFmt}</td>
@@ -589,7 +599,7 @@ function renderPos(){
           <input class="ed" type="number" placeholder="0" step="0.01" min="0"
             value="${cash||''}"
             onchange="saveCash(this.value)"
-            style="width:90px">
+            style="width:72px">
         </div>
       </td>
       <td colspan="7"></td>
@@ -607,6 +617,21 @@ function renderPos(){
     <div class="tbl-wrap">
       ${noKey?`<div class="no-key-bar">Sin API key — configura en ⚙ para ver precios y tipos de cambio en tiempo real</div>`:''}
       <table>
+        <colgroup>
+          <col style="width:14%">  <!-- Empresa -->
+          <col style="width:6%">   <!-- Acciones -->
+          <col style="width:7%">   <!-- Precio -->
+          <col style="width:7%">   <!-- BEP -->
+          <col style="width:5%">   <!-- Δ% -->
+          <col style="width:8%">   <!-- Valor € -->
+          <col style="width:10%">  <!-- Revalorización -->
+          <col style="width:5%">   <!-- Peso -->
+          <col style="width:8%">   <!-- Dividendo -->
+          <col style="width:6%">   <!-- Retención -->
+          <col style="width:6%">   <!-- Yield -->
+          <col style="width:6%">   <!-- YoC -->
+          <col style="width:4%">   <!-- Borrar -->
+        </colgroup>
         <thead><tr>
           <th style="text-align:left">Empresa</th>
           <th>Acciones</th>
@@ -616,8 +641,8 @@ function renderPos(){
           <th>Valor (€)</th>
           <th>Revalorización</th>
           <th>Peso</th>
-          <th>Dividendo (€)</th>
-          <th>Retención</th>
+          <th>Div. (€)</th>
+          <th>Ret. %</th>
           <th>Yield</th>
           <th>YoC</th>
           <th></th>
@@ -821,6 +846,20 @@ async function addPos(){
   }
 }
 
+function saveShares(sym,v){
+  const idx=pf.findIndex(p=>p.symbol===sym);
+  if(idx<0)return;
+  const val=parseFloat(v);
+  if(isNaN(val)||val<0)return;
+  pf[idx].shares=val;save();renderPos();updateSidebar();
+}
+function saveBep(sym,v){
+  const idx=pf.findIndex(p=>p.symbol===sym);
+  if(idx<0)return;
+  const val=parseFloat(v);
+  if(isNaN(val)||val<0)return;
+  pf[idx].avgPrice=val;save();renderPos();updateSidebar();
+}
 function saveCash(v){localStorage.setItem('pf6_cash',parseFloat(v)||0);renderPos();updateSidebar()}
 function saveTgt(s,v){tgts[s]=parseFloat(v)||0;localStorage.setItem('pf6t',JSON.stringify(tgts));renderPos()}
 function saveRetencion(s,v){const idx=pf.findIndex(p=>p.symbol===s);if(idx>=0){pf[idx].retencion=parseFloat(v)||0;save();renderPos()}}
