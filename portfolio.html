@@ -61,16 +61,6 @@ body{font-family:var(--sans);color:var(--fg);font-size:13px;line-height:1.5}
 .nb-ic{font-family:var(--mono);font-size:10px;width:14px;flex-shrink:0;opacity:.4}
 .nb.on .nb-ic{opacity:.8}
 
-.ticker-hd{padding:4px 16px 2px;font-family:var(--mono);font-size:8px;letter-spacing:.14em;color:var(--fg3)}
-.tickers{flex:1;overflow-y:auto}
-.tr{display:flex;align-items:center;justify-content:space-between;padding:8px 16px;border-bottom:1px solid var(--b1);transition:background .08s}
-.tr:hover{background:var(--s1)}
-.tr-sym{font-family:var(--mono);font-size:11px;font-weight:500}
-.tr-name{font-size:10px;color:var(--fg3);margin-top:1px}
-.tr-r{text-align:right}
-.tr-p{font-family:var(--mono);font-size:11px}
-.tr-c{font-family:var(--mono);font-size:9px;margin-top:2px}
-
 /* ── MAIN ── */
 .main{overflow-y:auto;background:var(--bg)}
 .panel{display:none;padding:24px}
@@ -112,7 +102,7 @@ body{font-family:var(--sans);color:var(--fg);font-size:13px;line-height:1.5}
 .sec-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
 .sec-l{font-family:var(--mono);font-size:9px;letter-spacing:.12em;color:var(--fg3)}
 .tbl-wrap{background:var(--s1);border:1px solid var(--b1);border-radius:10px;overflow:hidden;overflow-x:auto}
-table{width:100%;border-collapse:collapse;min-width:860px}
+table{width:100%;border-collapse:collapse;min-width:1100px}
 thead{background:var(--bg);border-bottom:1px solid var(--b1)}
 th{font-family:var(--mono);font-size:8px;letter-spacing:.1em;color:var(--fg3);padding:10px 14px;text-align:right;white-space:nowrap;font-weight:400}
 th:first-child{text-align:left}
@@ -131,6 +121,10 @@ tbody tr:hover{background:var(--s2)}
 .ed:focus{outline:none;border-color:var(--b3)}
 .tbl-hint{font-family:var(--mono);font-size:8px;color:var(--fg3);padding:8px 14px;border-top:1px solid var(--b1)}
 .no-key-bar{background:rgba(255,200,0,.07);border-bottom:1px solid rgba(255,200,0,.15);padding:8px 14px;font-family:var(--mono);font-size:9px;color:rgba(255,200,0,.7)}
+.mn{font-family:var(--mono);font-size:11px}
+.mn2{font-family:var(--mono);font-size:9px;color:var(--fg3)}
+.gold{color:rgba(255,200,0,.9)}
+.tag-sm{font-family:var(--mono);font-size:8px;padding:1px 5px;border-radius:3px;background:var(--b1);color:var(--fg3);white-space:nowrap}
 .lookup-card{background:var(--s2);border:1px solid var(--b2);border-radius:8px;padding:12px 14px;margin-top:10px;display:none;align-items:center;gap:14px}
 .lookup-card.show{display:flex}
 .lookup-logo{width:32px;height:32px;border-radius:6px;background:var(--s3);border:1px solid var(--b1);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0}
@@ -193,7 +187,7 @@ tbody tr:hover{background:var(--s2)}
 <div class="shell">
   <aside class="sidebar">
     <div class="hero">
-      <div class="hero-lbl">Valor total</div>
+      <div class="hero-lbl">Total Cuenta</div>
       <div class="hero-val" id="sb-total">€ 0,00</div>
       <div class="hero-sub">
         <span id="sb-pill" class="pill pill-up">+0,00%</span>
@@ -201,6 +195,8 @@ tbody tr:hover{background:var(--s2)}
       </div>
     </div>
     <div class="kpis">
+      <div class="kpi"><div class="kpi-l">Cartera</div><div class="kpi-v" id="sb-cartera">€0</div></div>
+      <div class="kpi"><div class="kpi-l">Cash</div><div class="kpi-v" id="sb-cash">€0</div></div>
       <div class="kpi"><div class="kpi-l">Invertido</div><div class="kpi-v" id="sb-inv">€0</div></div>
       <div class="kpi"><div class="kpi-l">Posiciones</div><div class="kpi-v" id="sb-pos">0</div></div>
       <div class="kpi"><div class="kpi-l">Div. anual</div><div class="kpi-v" id="sb-div">€0</div><div class="kpi-s" id="sb-yld" style="color:var(--up)">0.00%</div></div>
@@ -212,8 +208,6 @@ tbody tr:hover{background:var(--s2)}
       <button class="nb" onclick="go('dividendos')"><span class="nb-ic">%</span>Dividendos</button>
       <button class="nb" onclick="go('config')"><span class="nb-ic">⚙</span>Configuración</button>
     </div>
-    <div class="ticker-hd">Activos</div>
-    <div class="tickers" id="tickers"></div>
   </aside>
 
   <main class="main">
@@ -232,20 +226,42 @@ let pf=JSON.parse(localStorage.getItem('pf6')||'[]');
 let prices={},tgts=JSON.parse(localStorage.getItem('pf6t')||'{}'),divs={};
 let hist=JSON.parse(localStorage.getItem('pf6h')||'[]');
 let fkey=localStorage.getItem('fkey6')||'';
+let fx={};  // { 'USD': 0.92, 'GBP': 1.17, ... } — rate to EUR
 let aper=30,lc=null,dc=null,curTab='dashboard';
+
+// Currency symbols for display
+const CSYM={'USD':'$','GBP':'£','EUR':'€','JPY':'¥','CHF':'Fr','CAD':'C$','AUD':'A$','HKD':'HK$','SEK':'kr','NOK':'kr','DKK':'kr'};
 
 function save(){localStorage.setItem('pf6',JSON.stringify(pf));localStorage.setItem('pf6t',JSON.stringify(tgts));localStorage.setItem('pf6h',JSON.stringify(hist))}
 function saveKey(k){fkey=k.trim();localStorage.setItem('fkey6',fkey)}
+
+// Price in local currency
 function gP(p){return prices[p.symbol]?.price||p.avgPrice}
+// Currency of the stock (default USD)
+function gCur(p){return prices[p.symbol]?.currency||p.currency||'USD'}
+// FX rate to EUR for a given currency
+function fxRate(cur){if(cur==='EUR')return 1;return fx[cur]||1}
+// Price converted to EUR
+function gPeur(p){return gP(p)*fxRate(gCur(p))}
+// avgPrice converted to EUR (stored in local currency)
+function avgPeur(p){return p.avgPrice*fxRate(gCur(p))}
+// Change % (same in any currency)
 function gC(p){return prices[p.symbol]?.change||0}
-function gD(p){return divs[p.symbol]||0}
+// Dividend in EUR
+function gD(p){return(divs[p.symbol]||0)*fxRate(gCur(p))}
+
+function fmtLocal(n,cur='USD',d=2){const s=CSYM[cur]||cur+' ';return s+n.toLocaleString('es-ES',{minimumFractionDigits:d,maximumFractionDigits:d})}
 function fmt(n,d=2){return'€'+n.toLocaleString('es-ES',{minimumFractionDigits:d,maximumFractionDigits:d})}
 function fp(n){return(n>=0?'+':'')+n.toFixed(2)+'%'}
 function yc(y){return y>=3?'var(--up)':y>=1?'rgba(255,200,0,.9)':'var(--fg3)'}
 
 function calcM(){
   let inv=0,val=0,div=0;
-  pf.forEach(p=>{inv+=p.shares*p.avgPrice;val+=p.shares*gP(p);div+=gD(p)*p.shares});
+  pf.forEach(p=>{
+    inv+=p.shares*avgPeur(p);
+    val+=p.shares*gPeur(p);
+    div+=gD(p)*p.shares;
+  });
   return{inv,val,gain:val-inv,gainP:inv>0?(val-inv)/inv*100:0,div,yld:val>0?div/val*100:0};
 }
 
@@ -254,18 +270,42 @@ async function fetchQuote(sym){
   const r=await fetch(`https://finnhub.io/api/v1/quote?symbol=${sym}&token=${fkey}`);
   const d=await r.json();
   if(!d.c||d.c===0)throw new Error('no data');
-  prices[sym]={price:d.c,change:d.pc>0?((d.c-d.pc)/d.pc)*100:0};
+  const cur=prices[sym]?.currency||'USD';
+  prices[sym]={price:d.c,change:d.pc>0?((d.c-d.pc)/d.pc)*100:0,currency:cur};
+}
+
+async function fetchFxRates(){
+  // Get all unique non-EUR currencies in portfolio
+  const curs=[...new Set(pf.map(p=>p.currency||'USD').filter(c=>c&&c!=='EUR'))];
+  if(!curs.length)return;
+  for(const cur of curs){
+    if(fx[cur]&&fx[cur]>0)continue; // already have it
+    try{
+      // Finnhub forex: e.g. OANDA:USD_EUR
+      const pair=`OANDA:${cur}_EUR`;
+      const r=await fetch(`https://finnhub.io/api/v1/quote?symbol=${pair}&token=${fkey}`);
+      const d=await r.json();
+      if(d.c&&d.c>0){fx[cur]=d.c}
+      await sleep(120);
+    }catch{}
+  }
+  // Hardcode fallback rates if fetch failed (updated periodically in code)
+  const fallback={USD:0.92,GBP:1.17,JPY:0.0061,CHF:1.04,CAD:0.68,AUD:0.60,HKD:0.118,SEK:0.088,NOK:0.086,DKK:0.134};
+  curs.forEach(c=>{if(!fx[c]||fx[c]===0)fx[c]=fallback[c]||1});
 }
 
 async function fetchDividend(sym){
   try{
-    const r=await fetch(`https://finnhub.io/api/v1/stock/dividend2?symbol=${sym}&token=${fkey}`);
+    // stock/metric returns dividendPerShareAnnual directly — much more reliable than dividend2
+    const r=await fetch(`https://finnhub.io/api/v1/stock/metric?symbol=${sym}&metric=all&token=${fkey}`);
     const d=await r.json();
-    const data=d.data||[];
-    if(!data.length){divs[sym]=0;return}
-    if(data[0].annualDividend!==undefined){divs[sym]=parseFloat(data[0].annualDividend)||0;return}
-    const last4=data.slice(0,4);
-    divs[sym]=parseFloat(last4.reduce((s,x)=>s+(parseFloat(x.amount)||0),0).toFixed(4));
+    const annual=d?.metric?.dividendPerShareAnnual;
+    if(annual!==undefined&&annual!==null){divs[sym]=parseFloat(annual)||0;return}
+    // Fallback: try dividend2 and sum last 4 quarterly payments
+    const r2=await fetch(`https://finnhub.io/api/v1/stock/dividend2?symbol=${sym}&token=${fkey}`);
+    const d2=await r2.json();
+    const data=(d2.data||[]).slice(0,4);
+    divs[sym]=parseFloat(data.reduce((s,x)=>s+(parseFloat(x.amount)||0),0).toFixed(4));
   }catch{divs[sym]=0}
 }
 
@@ -275,7 +315,11 @@ async function fetchProfile(sym){
     const r=await fetch(`https://finnhub.io/api/v1/stock/profile2?symbol=${sym}&token=${fkey}`);
     const d=await r.json();
     if(!d||!d.name)return null;
-    return{name:d.name,country:d.country||'',exchange:d.exchange||'',logo:d.logo||''};
+    const currency=(d.currency||'USD').toUpperCase();
+    // Store currency in prices cache so fetchQuote can use it
+    if(!prices[sym])prices[sym]={price:0,change:0,currency};
+    else prices[sym].currency=currency;
+    return{name:d.name,country:d.country||'',exchange:d.exchange||'',logo:d.logo||'',currency};
   }catch{return null}
 }
 
@@ -283,11 +327,25 @@ async function fetchAll(){
   if(!pf.length){renderAll();return}
   if(!fkey){renderAll();return}
   const syms=[...new Set(pf.map(p=>p.symbol))];
+  // Fetch profiles first to get currencies (skip if already cached in prices)
+  for(const sym of syms){
+    if(!prices[sym]?.currency){
+      const prof=await fetchProfile(sym);
+      if(prof){
+        const idx=pf.findIndex(p=>p.symbol===sym);
+        if(idx>=0&&!pf[idx].currency){pf[idx].currency=prof.currency;save()}
+      }
+      await sleep(120);
+    }
+  }
+  // Fetch FX rates for all currencies
+  await fetchFxRates();
+  // Fetch quotes
   for(const sym of syms){
     try{await fetchQuote(sym)}catch{}
     await sleep(120);
   }
-  // Fetch dividends (less frequently needed, fetch once)
+  // Fetch dividends once
   for(const sym of syms){
     if(divs[sym]===undefined){
       await fetchDividend(sym);
@@ -317,7 +375,7 @@ function recHist(){
 
 /* ─── RENDER ─── */
 function renderAll(){
-  updateClock();updateSidebar();updateTickers();
+  updateClock();updateSidebar();
   if(curTab==='dashboard')renderDash();
   if(curTab==='posiciones')renderPos();
   if(curTab==='dividendos')renderDiv();
@@ -327,9 +385,13 @@ function updateClock(){document.getElementById('clk').textContent=new Date().toL
 
 function updateSidebar(){
   const m=calcM();
-  document.getElementById('sb-total').textContent='€ '+m.val.toLocaleString('es-ES',{minimumFractionDigits:2,maximumFractionDigits:2});
+  const cash=parseFloat(localStorage.getItem('pf6_cash')||0);
+  const totalCuenta=m.val+cash;
+  document.getElementById('sb-total').textContent='€ '+totalCuenta.toLocaleString('es-ES',{minimumFractionDigits:2,maximumFractionDigits:2});
   const pill=document.getElementById('sb-pill');pill.textContent=fp(m.gainP);pill.className='pill '+(m.gain>=0?'pill-up':'pill-dn');
-  document.getElementById('sb-abs').textContent=(m.gain>=0?'+':'')+fmt(m.gain)+' total';
+  document.getElementById('sb-abs').textContent=(m.gain>=0?'+':'')+fmt(m.gain)+' cartera';
+  document.getElementById('sb-cartera').textContent=fmt(m.val,0);
+  document.getElementById('sb-cash').textContent=fmt(cash,0);
   document.getElementById('sb-inv').textContent=fmt(m.inv,0);
   document.getElementById('sb-pos').textContent=pf.length;
   document.getElementById('sb-div').textContent=fmt(m.div,0);
@@ -338,13 +400,6 @@ function updateSidebar(){
   pf.forEach(p=>{const c=gC(p);if(c>bC){bC=c;best=p}});
   if(best){document.getElementById('sb-best').textContent=best.symbol;const bc=document.getElementById('sb-best-c');bc.textContent=fp(bC);bc.style.color=bC>=0?'var(--up)':'var(--dn)'}
   else{document.getElementById('sb-best').textContent='—';document.getElementById('sb-best-c').textContent=''}
-}
-
-function updateTickers(){
-  const el=document.getElementById('tickers');
-  if(!pf.length){el.innerHTML=`<div class="empty">Sin posiciones</div>`;return}
-  if(!fkey){el.innerHTML=`<div style="padding:10px 16px;font-family:var(--mono);font-size:9px;color:rgba(255,200,0,.6);line-height:1.8">Sin API key.<br>Configura en ⚙</div>`+pf.map(p=>`<div class="tr"><div><div class="tr-sym">${p.symbol}</div><div class="tr-name">${p.name||''}${p.country?` · ${p.country}`:''}</div></div><div class="tr-r"><div class="tr-p" style="color:var(--fg3)">—</div></div></div>`).join('');return}
-  el.innerHTML=pf.map(p=>{const c=gC(p);return`<div class="tr"><div><div class="tr-sym">${p.symbol}</div><div class="tr-name">${p.name||''}${p.country?` · ${p.country}`:''}</div></div><div class="tr-r"><div class="tr-p">${fmt(gP(p))}</div><div class="tr-c" style="color:${c>=0?'var(--up)':'var(--dn)'}">${fp(c)}</div></div></div>`}).join('');
 }
 
 /* ─── DASHBOARD ─── */
@@ -438,35 +493,138 @@ function renderPos(){
   const el=document.getElementById('tab-posiciones');
   const noKey=!fkey;
   if(!pf.length){el.innerHTML=`<div class="empty">Sin posiciones · Añade en Configuración</div>`;return}
+
+  const totalValEur=pf.reduce((s,p)=>s+p.shares*gPeur(p),0)||1;
+
   const rows=pf.map((p,i)=>{
-    const price=gP(p),chg=gC(p),val=p.shares*price,cost=p.shares*p.avgPrice,pnl=val-cost,pnlP=pnl/cost*100;
-    const div=gD(p),yld=price>0?div/price*100:0,yoc=p.avgPrice>0?div/p.avgPrice*100:0,divT=div*p.shares;
-    const tgt=parseFloat(tgts[p.symbol]||0),up=tgt>0?(tgt-price)/price*100:null;
+    const cur=gCur(p),rate=fxRate(cur);
+    const priceLocal=gP(p),priceEur=priceLocal*rate;
+    const bep=p.avgPrice; // break-even point in local currency
+    const chgPct=gC(p);
+    const valEur=p.shares*priceEur;
+    const costEur=p.shares*avgPeur(p);
+    const revalEur=valEur-costEur,revalP=costEur>0?revalEur/costEur*100:0;
+    const peso=totalValEur>0?valEur/totalValEur*100:0;
+    const div=gD(p); // EUR per share/year
+    const retencPct=parseFloat(p.retencion||0);
+    const divNeto=div*(1-retencPct/100);
+    const yld=priceEur>0?divNeto/priceEur*100:0;
+    const yoc=avgPeur(p)>0?divNeto/avgPeur(p)*100:0;
+    const exchg=p.exchange||'';
+
+    const na='<span style="color:var(--fg3)">—</span>';
+    const priceFmt=noKey?na:`<span class="mn">${fmtLocal(priceLocal,cur)}</span>`;
+    const bepFmt=`<span class="mn">${fmtLocal(bep,cur)}</span>`;
+    const chgFmt=noKey?na:`<span class="mn ${chgPct>=0?'up':'dn'}">${fp(chgPct)}</span>`;
+    const valFmt=noKey?na:`<span class="mn">${fmt(valEur,0)}</span>`;
+    const revalFmt=noKey?na:`<span class="mn ${revalEur>=0?'up':'dn'}">${fmt(revalEur,0)}</span><span class="mn2 ${revalEur>=0?'up':'dn'}"> ${fp(revalP)}</span>`;
+    const pesoFmt=noKey?na:`<span class="mn">${peso.toFixed(2)}%</span>`;
+    const divFmt=div>0?`<span class="mn">${fmt(div)}</span>`:na;
+    const retFmt=`<input class="ed" type="number" placeholder="0" min="0" max="100" step="1" value="${retencPct||''}" onchange="saveRetencion('${p.symbol}',this.value)" style="width:52px">`;
+    const yldFmt=div>0?`<span class="mn ${yld>=3?'up':yld>=1?'gold':''}">${yld.toFixed(2)}%</span>`:na;
+    const yocFmt=div>0?`<span class="mn ${yoc>=3?'up':yoc>=1?'gold':''}">${yoc.toFixed(2)}%</span>`:na;
+
     return`<tr>
-      <td><div class="t-sym">${p.symbol}</div><div class="t-name">${p.name||''}${p.country?` · ${p.country}`:''}</div></td>
-      <td>${noKey?`<span style="color:var(--fg3)">—</span>`:`<div class="t-n">${fmt(price)}</div><div class="t-s ${chg>=0?'up':'dn'}">${fp(chg)}</div>`}</td>
-      <td><span class="t-n">${p.shares.toLocaleString('es-ES',{maximumFractionDigits:6})}</span></td>
-      <td>${noKey?`<span style="color:var(--fg3)">—</span>`:`<div class="t-n ${pnl>=0?'up':'dn'}">${fmt(pnl)}</div><div class="t-s ${pnl>=0?'up':'dn'}">${fp(pnlP)}</div>`}</td>
-      <td>${div>0?`<div class="t-n">${fmt(div)}</div><div class="t-s">por acción/año</div>`:'<span style="color:var(--fg3)">—</span>'}</td>
-      <td>${div>0?`<div class="t-n" style="color:${yc(yld)}">${yld.toFixed(2)}%</div><div class="t-s">YoC ${yoc.toFixed(2)}%</div>`:'<span style="color:var(--fg3)">—</span>'}</td>
-      <td>${div>0?`<span class="t-n">${fmt(divT)}</span>`:'<span style="color:var(--fg3)">—</span>'}</td>
-      <td><input class="ed" type="number" placeholder="—" value="${tgt||''}" step="0.01" onchange="saveTgt('${p.symbol}',this.value)"></td>
-      <td>${up!==null?`<span class="upside ${up>=0?'up':'dn'}">${fp(up)}</span>`:'<span style="color:var(--fg3)">—</span>'}</td>
+      <td style="text-align:left;min-width:160px">
+        <div style="font-size:12px;font-weight:500;color:var(--fg)">${p.name||p.symbol}</div>
+        <div style="display:flex;gap:5px;margin-top:3px;align-items:center;flex-wrap:wrap">
+          <span class="tag-sm">${p.symbol}</span>
+          ${exchg?`<span class="tag-sm">${exchg}</span>`:''}
+          ${p.country?`<span class="tag-sm">${p.country}</span>`:''}
+        </div>
+      </td>
+      <td><span class="mn">${p.shares.toLocaleString('es-ES',{maximumFractionDigits:4})}</span></td>
+      <td>${priceFmt}</td>
+      <td>${bepFmt}<div class="mn2">${cur}</div></td>
+      <td>${chgFmt}</td>
+      <td>${valFmt}</td>
+      <td>${revalFmt}</td>
+      <td>${pesoFmt}</td>
+      <td>${divFmt}</td>
+      <td>${retFmt}<span class="mn2">%</span></td>
+      <td>${yldFmt}</td>
+      <td>${yocFmt}</td>
       <td><button class="btn btn-rm" onclick="rmPos(${i})">✕</button></td>
     </tr>`;
   }).join('');
+
+  // Totals row
+  const totVal=pf.reduce((s,p)=>s+p.shares*gPeur(p),0);
+  const totCost=pf.reduce((s,p)=>s+p.shares*avgPeur(p),0);
+  const totReval=totVal-totCost,totRevalP=totCost>0?totReval/totCost*100:0;
+  const totDiv=pf.reduce((s,p)=>s+gD(p)*(1-(parseFloat(p.retencion||0)/100))*p.shares,0);
+  const totYld=totVal>0?totDiv/totVal*100:0;
+  const cash=parseFloat(localStorage.getItem('pf6_cash')||0);
+  const totalCuenta=totVal+cash;
+
+  const sep='<td style="border-top:1px solid var(--b2)"></td>';
+  const sepRow=(label,valueCell)=>`<tr style="background:var(--s2)">
+    <td style="text-align:left;border-top:1px solid var(--b2)" colspan="5">
+      <span style="font-family:var(--mono);font-size:9px;color:var(--fg2);letter-spacing:.1em">${label}</span>
+    </td>
+    ${sep.repeat(0)}
+    <td style="border-top:1px solid var(--b2)">${valueCell}</td>
+    <td style="border-top:1px solid var(--b2)" colspan="7"></td>
+  </tr>`;
+
+  const totRow=noKey?'':
+    `<tr style="border-top:1px solid var(--b2);background:var(--s2)">
+      <td style="text-align:left;font-family:var(--mono);font-size:9px;color:var(--fg2)">CARTERA</td>
+      <td></td><td></td><td></td><td></td>
+      <td><span class="mn">${fmt(totVal,0)}</span></td>
+      <td><span class="mn ${totReval>=0?'up':'dn'}">${fmt(totReval,0)}</span><span class="mn2 ${totReval>=0?'up':'dn'}"> ${fp(totRevalP)}</span></td>
+      <td><span class="mn">100%</span></td>
+      <td><span class="mn">${fmt(totDiv,0)}</span></td>
+      <td></td>
+      <td><span class="mn ${totYld>=3?'up':totYld>=1?'gold':''}">${totYld.toFixed(2)}%</span></td>
+      <td></td><td></td>
+    </tr>
+    <tr style="background:var(--s2)">
+      <td style="text-align:left" colspan="5">
+        <span style="font-family:var(--mono);font-size:9px;color:var(--fg2);letter-spacing:.06em">CASH</span>
+      </td>
+      <td>
+        <div style="display:flex;align-items:center;gap:4px">
+          <span style="font-family:var(--mono);font-size:11px;color:var(--fg3)">€</span>
+          <input class="ed" type="number" placeholder="0" step="0.01" min="0"
+            value="${cash||''}"
+            onchange="saveCash(this.value)"
+            style="width:90px">
+        </div>
+      </td>
+      <td colspan="7"></td>
+    </tr>
+    <tr style="background:var(--s3);border-top:1px solid var(--b2)">
+      <td style="text-align:left" colspan="5">
+        <span style="font-family:var(--mono);font-size:9px;font-weight:500;color:var(--fg);letter-spacing:.06em">TOTAL CUENTA</span>
+      </td>
+      <td><span class="mn" style="font-weight:500;color:var(--fg)">${fmt(totalCuenta,0)}</span></td>
+      <td colspan="7"></td>
+    </tr>`;
+
   el.innerHTML=`
-    <div class="sec-row"><span class="sec-l">${pf.length} posicion${pf.length!==1?'es':''}</span></div>
+    <div class="sec-row"><span class="sec-l">${pf.length} posicion${pf.length!==1?'es':''}</span>${!noKey?`<span class="sec-l" style="color:var(--fg3)">Tipos de cambio via Finnhub · actualizado</span>`:''}</div>
     <div class="tbl-wrap">
-      ${noKey?`<div class="no-key-bar">Sin API key — configura en ⚙ para ver precios y dividendos en tiempo real</div>`:''}
+      ${noKey?`<div class="no-key-bar">Sin API key — configura en ⚙ para ver precios y tipos de cambio en tiempo real</div>`:''}
       <table>
         <thead><tr>
-          <th style="text-align:left">Activo</th><th>Precio</th><th>Acciones</th><th>G / P</th>
-          <th>Dividendo</th><th>Yield / YoC</th><th>Div. total</th><th>Objetivo</th><th>Potencial</th><th></th>
+          <th style="text-align:left">Empresa</th>
+          <th>Acciones</th>
+          <th>Precio</th>
+          <th>BEP</th>
+          <th>Δ%</th>
+          <th>Valor (€)</th>
+          <th>Revalorización</th>
+          <th>Peso</th>
+          <th>Dividendo (€)</th>
+          <th>Retención</th>
+          <th>Yield</th>
+          <th>YoC</th>
+          <th></th>
         </tr></thead>
-        <tbody>${rows}</tbody>
+        <tbody>${rows}${totRow}</tbody>
       </table>
-      <div class="tbl-hint">// Dividendo obtenido automáticamente desde Finnhub · YoC = Yield on Cost (sobre precio de compra) · Precio objetivo editable</div>
+      <div class="tbl-hint">// BEP = Break Even Point (precio medio de compra) · Dividendo neto tras retención · YoC = Yield on Cost</div>
     </div>`;
 }
 
@@ -474,8 +632,8 @@ function renderPos(){
 function renderDiv(){
   const el=document.getElementById('tab-dividendos');
   const total=pf.reduce((s,p)=>s+gD(p)*p.shares,0);
-  const tVal=pf.reduce((s,p)=>s+p.shares*gP(p),0)||1;
-  const tCost=pf.reduce((s,p)=>s+p.shares*p.avgPrice,0)||1;
+  const tVal=pf.reduce((s,p)=>s+p.shares*gPeur(p),0)||1;
+  const tCost=pf.reduce((s,p)=>s+p.shares*avgPeur(p),0)||1;
   const yldT=total/tVal*100,yoc=total/tCost*100;
   const conDiv=pf.filter(p=>gD(p)>0).length;
   el.innerHTML=`
@@ -492,8 +650,8 @@ function renderDiv(){
             <th style="text-align:left">Activo</th><th>Div. / acción</th><th>Total anual</th><th>Mensual</th><th>Yield</th><th>Yield on cost</th><th>Peso</th>
           </tr></thead>
           <tbody>${pf.map((p,i)=>{
-            const div=gD(p),price=gP(p),divT=div*p.shares;
-            const yld=price>0?div/price*100:0,yoc2=p.avgPrice>0?div/p.avgPrice*100:0;
+            const div=gD(p),price=gPeur(p),divT=div*p.shares;
+            const yld=price>0?div/price*100:0,yoc2=avgPeur(p)>0?div/avgPeur(p)*100:0;
             const peso=total>0?divT/total*100:0;
             return`<tr>
               <td><div style="display:flex;align-items:center;gap:8px"><span style="width:6px;height:6px;border-radius:50%;background:${C[i%C.length]};flex-shrink:0"></span><div><div class="t-sym">${p.symbol}</div><div class="t-name">${p.name||''}${p.country?` · ${p.country}`:''}</div></div></div></td>
@@ -556,7 +714,7 @@ function renderConfig(){
           <datalist id="sdl"><option value="AAPL"><option value="MSFT"><option value="GOOGL"><option value="AMZN"><option value="TSLA"><option value="META"><option value="NVDA"><option value="NFLX"><option value="V"><option value="JPM"><option value="JNJ"><option value="PFE"><option value="ASML"><option value="SAP"><option value="MC.PA"><option value="SAN.MC"><option value="IBE.MC"><option value="REP.MC"><option value="SHEL.L"><option value="BP.L"></datalist>
         </div>
         <div class="fi"><label class="fl">Número de acciones</label><input type="number" id="fshares" placeholder="10" step="any" min="0"></div>
-        <div class="fi"><label class="fl">Precio de compra (€)</label><input type="number" id="fprice" placeholder="150.00" step="any" min="0"></div>
+        <div class="fi"><label class="fl">Precio de compra (divisa local)</label><input type="number" id="fprice" placeholder="150.00" step="any" min="0"></div>
       </div>
       <div id="lookup-card" class="lookup-card">
         <div class="lookup-logo" id="lookup-logo"></div>
@@ -613,7 +771,7 @@ function showLookup(sym,p){
   if(p.logo){logo.innerHTML=`<img src="${p.logo}" onerror="this.style.display='none'">`}
   else{logo.innerHTML=`<span style="font-family:var(--mono);font-size:10px;color:var(--fg3)">${sym.slice(0,3)}</span>`}
   name.textContent=p.name;
-  meta.innerHTML=`${p.country?`<span class="lookup-tag">${p.country}</span>`:''}${p.exchange?`<span class="lookup-tag">${p.exchange}</span>`:''}`;
+  meta.innerHTML=`${p.country?`<span class="lookup-tag">${p.country}</span>`:''}${p.exchange?`<span class="lookup-tag">${p.exchange}</span>`:''}${p.currency?`<span class="lookup-tag" style="color:rgba(255,200,0,.8)">${p.currency}</span>`:''}`;
   card.className='lookup-card show';
   const spin=document.getElementById('lookup-spin');
   if(spin){spin.style.display='none'}
@@ -637,13 +795,14 @@ async function addPos(){
   const profile=_profileCache[sym]||null;
   const name=profile?.name||sym;
   const country=profile?.country||'';
+  const currency=(profile?.currency||'USD').toUpperCase();
   const ex=pf.findIndex(p=>p.symbol===sym);
   if(ex>=0){
     const o=pf[ex];const ts=o.shares+shares;
-    pf[ex]={...o,shares:ts,avgPrice:parseFloat(((o.shares*o.avgPrice+shares*avgPrice)/ts).toFixed(6)),name,country};
+    pf[ex]={...o,shares:ts,avgPrice:parseFloat(((o.shares*o.avgPrice+shares*avgPrice)/ts).toFixed(6)),name,country,currency};
     msg.textContent='Actualizado';
   }else{
-    pf.push({symbol:sym,name,country,shares,avgPrice});
+    pf.push({symbol:sym,name,country,currency,shares,avgPrice});
     msg.textContent='Añadido';
   }
   msg.style.color='var(--up)';save();
@@ -662,7 +821,9 @@ async function addPos(){
   }
 }
 
+function saveCash(v){localStorage.setItem('pf6_cash',parseFloat(v)||0);renderPos();updateSidebar()}
 function saveTgt(s,v){tgts[s]=parseFloat(v)||0;localStorage.setItem('pf6t',JSON.stringify(tgts));renderPos()}
+function saveRetencion(s,v){const idx=pf.findIndex(p=>p.symbol===s);if(idx>=0){pf[idx].retencion=parseFloat(v)||0;save();renderPos()}}
 function rmPos(i){pf.splice(i,1);save();fetchAll();if(curTab==='config')renderConfig()}
 
 /* ─── NAV ─── */
