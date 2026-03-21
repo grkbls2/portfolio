@@ -126,7 +126,13 @@ tbody tr:hover{background:var(--s2)}
 .mn2{font-family:var(--mono);font-size:8px;color:var(--fg3)}
 .gold{color:rgba(255,200,0,.9)}
 .tag-sm{font-family:var(--mono);font-size:7px;padding:1px 4px;border-radius:3px;background:var(--b1);color:var(--fg3);white-space:nowrap}
-.lookup-card{background:var(--s2);border:1px solid var(--b2);border-radius:8px;padding:12px 14px;margin-top:10px;display:none;align-items:center;gap:14px}
+.add-form{background:var(--s1);border:1px solid var(--b1);border-radius:10px;margin-bottom:12px;overflow:hidden}
+.add-form-hd{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;cursor:pointer;user-select:none}
+.add-form-hd:hover{background:var(--s2)}
+.add-form-ttl{font-family:var(--mono);font-size:9px;letter-spacing:.12em;color:var(--fg2)}
+.add-form-toggle{font-family:var(--mono);font-size:10px;color:var(--fg3)}
+.add-form-body{padding:14px;border-top:1px solid var(--b1);display:none}
+.add-form-body.open{display:block}
 .lookup-card.show{display:flex}
 .lookup-logo{width:32px;height:32px;border-radius:6px;background:var(--s3);border:1px solid var(--b1);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0}
 .lookup-logo img{width:100%;height:100%;object-fit:contain}
@@ -172,7 +178,59 @@ tbody tr:hover{background:var(--s2)}
 
 .empty{padding:40px;text-align:center;font-family:var(--mono);font-size:10px;color:var(--fg3)}
 
-@media(max-width:800px){.shell{grid-template-columns:1fr}.sidebar{display:none}.dash-grid{grid-template-columns:1fr}.div-grid{grid-template-columns:1fr}.stat-row{grid-template-columns:1fr 1fr}}
+/* ── MOBILE BOTTOM NAV ── */
+.mob-nav{display:none;position:fixed;bottom:0;left:0;right:0;height:56px;background:var(--s1);border-top:1px solid var(--b1);z-index:200;grid-template-columns:repeat(4,1fr)}
+.mob-nb{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border:none;background:none;color:var(--fg3);cursor:pointer;padding:6px 0;transition:color .12s}
+.mob-nb.on{color:var(--fg)}
+.mob-nb-ic{font-family:var(--mono);font-size:14px;line-height:1}
+.mob-nb-lbl{font-family:var(--mono);font-size:8px;letter-spacing:.06em}
+
+/* ── MOBILE SUMMARY HEADER ── */
+.mob-hero{display:none;padding:16px;border-bottom:1px solid var(--b1)}
+.mob-kpis{display:none;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--b1);border-bottom:1px solid var(--b1)}
+
+/* ── POSITION CARDS (mobile) ── */
+.pos-card{background:var(--s1);border:1px solid var(--b1);border-radius:10px;padding:14px;margin-bottom:10px}
+.pos-card-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px}
+.pos-card-name{font-size:13px;font-weight:500}
+.pos-card-tags{display:flex;gap:4px;margin-top:3px;flex-wrap:wrap}
+.pos-card-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.pos-card-item{display:flex;flex-direction:column;gap:2px}
+.pos-card-lbl{font-family:var(--mono);font-size:8px;letter-spacing:.08em;color:var(--fg3)}
+.pos-card-val{font-family:var(--mono);font-size:11px;color:var(--fg)}
+.pos-card-edit{font-family:var(--mono);font-size:11px;background:var(--s3);border:1px solid var(--b1);border-radius:4px;color:var(--fg);padding:3px 6px;width:100%;text-align:right}
+.pos-card-edit:focus{outline:none;border-color:var(--b3)}
+.pos-totals{background:var(--s2);border:1px solid var(--b1);border-radius:10px;padding:14px;margin-bottom:10px}
+.pos-totals-row{display:flex;justify-content:space-between;align-items:center;padding:4px 0}
+.pos-totals-lbl{font-family:var(--mono);font-size:9px;color:var(--fg3)}
+.pos-totals-val{font-family:var(--mono);font-size:12px;font-weight:500}
+
+@media(max-width:700px){
+  html,body{height:auto;min-height:100%}
+  .shell{display:block;height:auto;min-height:calc(100vh - 48px - 56px)}
+  .sidebar{display:none}
+  .mob-nav{display:grid}
+  .mob-hero{display:block}
+  .mob-kpis{display:grid}
+  .main{padding-bottom:56px}
+  .panel{padding:12px}
+  #tab-posiciones{padding:12px}
+  .dash-grid{grid-template-columns:1fr}
+  .div-grid{grid-template-columns:1fr}
+  .stat-row{grid-template-columns:1fr 1fr}
+  .div-sum{grid-template-columns:1fr 1fr}
+  .tbl-wrap{display:none}
+  .sec-row{margin-bottom:10px}
+  .pos-mobile{display:block}
+  .pos-desktop{display:none}
+  .chart-body{height:160px}
+  .add-form .fg{grid-template-columns:1fr}
+}
+@media(min-width:701px){
+  .pos-mobile{display:none}
+  .pos-desktop{display:block}
+  .mob-hero,.mob-kpis,.mob-nav{display:none!important}
+}
 </style>
 </head>
 <body>
@@ -183,6 +241,21 @@ tbody tr:hover{background:var(--s2)}
     <span class="live-dot"></span>
     <span class="clk" id="clk">--:--:--</span>
   </div>
+</div>
+
+<!-- MOBILE SUMMARY HEADER -->
+<div class="mob-hero">
+  <div class="hero-lbl">Total Cuenta</div>
+  <div class="hero-val" id="mob-total" style="font-family:var(--mono);font-size:24px;font-weight:500;letter-spacing:-.02em">€ 0,00</div>
+  <div class="hero-sub" style="margin-top:5px;display:flex;gap:6px;align-items:center">
+    <span id="mob-pill" class="pill pill-up">+0,00%</span>
+    <span id="mob-abs" style="font-family:var(--mono);font-size:10px;color:var(--fg3)">+€0 cartera</span>
+  </div>
+</div>
+<div class="mob-kpis">
+  <div class="kpi"><div class="kpi-l">Cartera</div><div class="kpi-v" id="mob-cartera" style="font-size:12px">€0</div></div>
+  <div class="kpi"><div class="kpi-l">Cash</div><div class="kpi-v" id="mob-cash" style="font-size:12px">€0</div></div>
+  <div class="kpi"><div class="kpi-l">Div. anual</div><div class="kpi-v" id="mob-div" style="font-size:12px">€0</div></div>
 </div>
 
 <div class="shell">
@@ -200,14 +273,15 @@ tbody tr:hover{background:var(--s2)}
       <div class="kpi"><div class="kpi-l">Cash</div><div class="kpi-v" id="sb-cash">€0</div></div>
       <div class="kpi"><div class="kpi-l">Invertido</div><div class="kpi-v" id="sb-inv">€0</div></div>
       <div class="kpi"><div class="kpi-l">Posiciones</div><div class="kpi-v" id="sb-pos">0</div></div>
-      <div class="kpi"><div class="kpi-l">Div. anual</div><div class="kpi-v" id="sb-div">€0</div><div class="kpi-s" id="sb-yld" style="color:var(--up)">0.00%</div></div>
+      <div class="kpi"><div class="kpi-l">Div. anual</div><div class="kpi-v" id="sb-div">€0</div><div class="kpi-s" id="sb-yld">0.00%</div></div>
       <div class="kpi"><div class="kpi-l">Mejor hoy</div><div class="kpi-v" id="sb-best">—</div><div class="kpi-s" id="sb-best-c"></div></div>
     </div>
     <div class="nav">
       <button class="nb on" onclick="go('dashboard')"><span class="nb-ic">▲</span>Dashboard</button>
       <button class="nb" onclick="go('posiciones')"><span class="nb-ic">≡</span>Posiciones</button>
       <button class="nb" onclick="go('dividendos')"><span class="nb-ic">%</span>Dividendos</button>
-      <button class="nb" onclick="go('config')"><span class="nb-ic">⚙</span>Configuración</button>
+      <button class="nb" onclick="go('historico')"><span class="nb-ic">◷</span>Histórico</button>
+      <button class="nb" onclick="go('config')"><span class="nb-ic">⚙</span>API Key</button>
     </div>
   </aside>
 
@@ -215,25 +289,36 @@ tbody tr:hover{background:var(--s2)}
     <div id="tab-dashboard" class="panel on"></div>
     <div id="tab-posiciones" class="panel"></div>
     <div id="tab-dividendos" class="panel"></div>
+    <div id="tab-historico" class="panel"></div>
     <div id="tab-config" class="panel"></div>
   </main>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<!-- MOBILE BOTTOM NAV -->
+<nav class="mob-nav" style="grid-template-columns:repeat(5,1fr)">
+  <button class="mob-nb on" onclick="go('dashboard')"><span class="mob-nb-ic">▲</span><span class="mob-nb-lbl">Dashboard</span></button>
+  <button class="mob-nb" onclick="go('posiciones')"><span class="mob-nb-ic">≡</span><span class="mob-nb-lbl">Posiciones</span></button>
+  <button class="mob-nb" onclick="go('dividendos')"><span class="mob-nb-ic">%</span><span class="mob-nb-lbl">Dividendos</span></button>
+  <button class="mob-nb" onclick="go('historico')"><span class="mob-nb-ic">◷</span><span class="mob-nb-lbl">Histórico</span></button>
+  <button class="mob-nb" onclick="go('config')"><span class="mob-nb-ic">⚙</span><span class="mob-nb-lbl">API Key</span></button>
+</nav>
 <script>
 const C=['#4d9fff','#00c97a','#ff9f40','#c084fc','#ff6b6b','#34d399','#60a5fa','#fb923c','#a3e635','#f472b6'];
 
 let pf=JSON.parse(localStorage.getItem('pf6')||'[]');
 let prices={},tgts=JSON.parse(localStorage.getItem('pf6t')||'{}'),divs={};
+// hist: [{d:'2024-01-15', cartera:12000, cash:5000, cuenta:17000}]
 let hist=JSON.parse(localStorage.getItem('pf6h')||'[]');
+// cashHist: [{d:'2024-01-15', v:5000}] — snapshot of cash each day it changes
+let cashHist=JSON.parse(localStorage.getItem('pf6ch')||'[]');
 let fkey=localStorage.getItem('fkey6')||'';
-let fx={};  // { 'USD': 0.92, 'GBP': 1.17, ... } — rate to EUR
+let fx={};
 let aper=30,lc=null,dc=null,curTab='dashboard';
 
 // Currency symbols for display
 const CSYM={'USD':'$','GBP':'£','EUR':'€','JPY':'¥','CHF':'Fr','CAD':'C$','AUD':'A$','HKD':'HK$','SEK':'kr','NOK':'kr','DKK':'kr'};
 
-function save(){localStorage.setItem('pf6',JSON.stringify(pf));localStorage.setItem('pf6t',JSON.stringify(tgts));localStorage.setItem('pf6h',JSON.stringify(hist))}
+function save(){localStorage.setItem('pf6',JSON.stringify(pf));localStorage.setItem('pf6t',JSON.stringify(tgts));localStorage.setItem('pf6h',JSON.stringify(hist));localStorage.setItem('pf6ch',JSON.stringify(cashHist))}
 function saveKey(k){fkey=k.trim();localStorage.setItem('fkey6',fkey)}
 
 // Price in local currency
@@ -251,10 +336,11 @@ function gC(p){return prices[p.symbol]?.change||0}
 // Dividend in EUR
 function gD(p){return(divs[p.symbol]||0)*fxRate(gCur(p))}
 
-function fmtLocal(n,cur='USD',d=2){const s=CSYM[cur]||cur+' ';return s+n.toLocaleString('es-ES',{minimumFractionDigits:d,maximumFractionDigits:d})}
-function fmt(n,d=2){return'€'+n.toLocaleString('es-ES',{minimumFractionDigits:d,maximumFractionDigits:d})}
-function fp(n){return(n>=0?'+':'')+n.toFixed(2)+'%'}
-function yc(y){return y>=3?'var(--up)':y>=1?'rgba(255,200,0,.9)':'var(--fg3)'}
+function fmtLocal(n,cur='USD',d=2){const s=CSYM[cur]||cur+' ';return s+n.toLocaleString('es-ES',{minimumFractionDigits:d,maximumFractionDigits:d,useGrouping:true})}
+function fmt(n,d=2){return'€'+n.toLocaleString('es-ES',{minimumFractionDigits:d,maximumFractionDigits:d,useGrouping:true})}
+function fmtN(n,d=2){return n.toLocaleString('es-ES',{minimumFractionDigits:d,maximumFractionDigits:d,useGrouping:true})}
+function fp(n){return(n>=0?'+':'')+fmtN(Math.abs(n),2)+'%'}
+function yc(y){return'var(--fg)'}
 
 function calcM(){
   let inv=0,val=0,div=0;
@@ -353,7 +439,7 @@ async function fetchAll(){
       await sleep(120);
     }
   }
-  recHist();renderAll();
+  renderAll();
 }
 
 async function refreshDivs(){
@@ -366,12 +452,32 @@ async function refreshDivs(){
 function sleep(ms){return new Promise(r=>setTimeout(r,ms))}
 
 function recHist(){
+  // Records closing values of the previous day — only called at midnight
   if(!pf.length)return;
-  const v=calcM().val,today=new Date().toISOString().slice(0,10),last=hist[hist.length-1];
-  if(last&&last.d===today)hist[hist.length-1].v=parseFloat(v.toFixed(2));
-  else hist.push({d:today,v:parseFloat(v.toFixed(2))});
-  if(hist.length>365)hist=hist.slice(-365);
+  const yesterday=new Date();
+  yesterday.setDate(yesterday.getDate()-1);
+  const d=yesterday.toISOString().slice(0,10);
+  if(hist.find(h=>h.d===d))return; // already recorded
+  const cartera=parseFloat(calcM().val.toFixed(2));
+  const cash=parseFloat(localStorage.getItem('pf6_cash')||0);
+  const cuenta=parseFloat((cartera+cash).toFixed(2));
+  hist.push({d,cartera,cash,cuenta});
+  hist.sort((a,b)=>a.d.localeCompare(b.d));
+  if(hist.length>730)hist=hist.slice(-730);
   save();
+}
+
+function scheduleSnapshot(){
+  const now=new Date();
+  const midnight=new Date(now);
+  midnight.setHours(24,0,1,0); // 00:00:01 next day
+  const msUntil=midnight-now;
+  setTimeout(()=>{
+    recHist();
+    if(curTab==='historico')renderHistorico();
+    drawLine(aper);
+    scheduleSnapshot();
+  },msUntil);
 }
 
 /* ─── RENDER ─── */
@@ -380,6 +486,7 @@ function renderAll(){
   if(curTab==='dashboard')renderDash();
   if(curTab==='posiciones')renderPos();
   if(curTab==='dividendos')renderDiv();
+  if(curTab==='historico')renderHistorico();
 }
 
 function updateClock(){document.getElementById('clk').textContent=new Date().toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit',second:'2-digit'})}
@@ -388,19 +495,28 @@ function updateSidebar(){
   const m=calcM();
   const cash=parseFloat(localStorage.getItem('pf6_cash')||0);
   const totalCuenta=m.val+cash;
-  document.getElementById('sb-total').textContent='€ '+totalCuenta.toLocaleString('es-ES',{minimumFractionDigits:2,maximumFractionDigits:2});
+  // Desktop
+  document.getElementById('sb-total').textContent='€ '+totalCuenta.toLocaleString('es-ES',{minimumFractionDigits:2,maximumFractionDigits:2,useGrouping:true});
   const pill=document.getElementById('sb-pill');pill.textContent=fp(m.gainP);pill.className='pill '+(m.gain>=0?'pill-up':'pill-dn');
   document.getElementById('sb-abs').textContent=(m.gain>=0?'+':'')+fmt(m.gain)+' cartera';
-  document.getElementById('sb-cartera').textContent=fmt(m.val,0);
-  document.getElementById('sb-cash').textContent=fmt(cash,0);
-  document.getElementById('sb-inv').textContent=fmt(m.inv,0);
+  document.getElementById('sb-cartera').textContent=fmt(m.val,2);
+  document.getElementById('sb-cash').textContent=fmt(cash,2);
+  document.getElementById('sb-inv').textContent=fmt(m.inv,2);
   document.getElementById('sb-pos').textContent=pf.length;
-  document.getElementById('sb-div').textContent=fmt(m.div,0);
-  const ys=document.getElementById('sb-yld');ys.textContent=m.yld.toFixed(2)+'% yield';ys.style.color=yc(m.yld);
+  document.getElementById('sb-div').textContent=fmt(m.div,2);
+  document.getElementById('sb-yld').textContent=m.yld.toFixed(2)+'% yield';
   let best=null,bC=-Infinity;
   pf.forEach(p=>{const c=gC(p);if(c>bC){bC=c;best=p}});
   if(best){document.getElementById('sb-best').textContent=best.symbol;const bc=document.getElementById('sb-best-c');bc.textContent=fp(bC);bc.style.color=bC>=0?'var(--up)':'var(--dn)'}
   else{document.getElementById('sb-best').textContent='—';document.getElementById('sb-best-c').textContent=''}
+  // Mobile
+  const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v};
+  set('mob-total','€ '+totalCuenta.toLocaleString('es-ES',{minimumFractionDigits:2,maximumFractionDigits:2,useGrouping:true}));
+  const mp=document.getElementById('mob-pill');if(mp){mp.textContent=fp(m.gainP);mp.className='pill '+(m.gain>=0?'pill-up':'pill-dn')}
+  set('mob-abs',(m.gain>=0?'+':'')+fmt(m.gain)+' cartera');
+  set('mob-cartera',fmt(m.val,2));
+  set('mob-cash',fmt(cash,2));
+  set('mob-div',fmt(m.div,2));
 }
 
 /* ─── DASHBOARD ─── */
@@ -413,18 +529,26 @@ function renderDash(){
       <div class="card">
         <div class="card-hd">
           <span class="card-ttl">Evolución del portfolio</span>
-          <div class="per-row">
-            <button class="pb${aper===7?' on':''}" onclick="setPer(7)">7D</button>
-            <button class="pb${aper===30?' on':''}" onclick="setPer(30)">1M</button>
-            <button class="pb${aper===90?' on':''}" onclick="setPer(90)">3M</button>
-            <button class="pb${aper===365?' on':''}" onclick="setPer(365)">1A</button>
+          <div style="display:flex;align-items:center;gap:10px">
+            <div style="display:flex;gap:10px;font-family:var(--mono);font-size:8px;color:var(--fg3)">
+              <span style="display:flex;align-items:center;gap:4px"><span style="width:14px;height:1.5px;background:#fff;display:inline-block"></span>Cuenta</span>
+              <span style="display:flex;align-items:center;gap:4px"><span style="width:14px;height:1.5px;background:#00c97a;display:inline-block"></span>Cartera</span>
+              <span style="display:flex;align-items:center;gap:4px"><span style="width:14px;height:1px;background:rgba(255,255,255,.3);display:inline-block"></span>Cash</span>
+            </div>
+            <div class="per-row">
+              <button class="pb${aper===7?' on':''}" onclick="setPer(7)">7D</button>
+              <button class="pb${aper===30?' on':''}" onclick="setPer(30)">1M</button>
+              <button class="pb${aper===90?' on':''}" onclick="setPer(90)">3M</button>
+              <button class="pb${aper===365?' on':''}" onclick="setPer(365)">1A</button>
+            </div>
           </div>
         </div>
         <div class="chart-body"><canvas id="lc"></canvas></div>
         <div class="chart-stats">
-          <div class="cs-item"><div class="cs-l">Valor actual</div><div class="cs-v">${fmt(m.val)}</div></div>
-          <div class="cs-item"><div class="cs-l">G / P total</div><div class="cs-v" style="color:${m.gain>=0?'var(--up)':'var(--dn)'}">${fp(m.gainP)}</div></div>
+          <div class="cs-item"><div class="cs-l">Cartera</div><div class="cs-v">${fmt(m.val)}</div></div>
+          <div class="cs-item"><div class="cs-l">G / P</div><div class="cs-v" style="color:${m.gain>=0?'var(--up)':'var(--dn)'}">${fp(m.gainP)}</div></div>
           <div class="cs-item"><div class="cs-l">Invertido</div><div class="cs-v" style="color:var(--fg2)">${fmt(m.inv)}</div></div>
+          <div class="cs-item"><div class="cs-l">Registros</div><div class="cs-v" style="font-size:13px">${hist.length}</div></div>
         </div>
       </div>
       <div class="card">
@@ -440,9 +564,23 @@ function renderDash(){
 }
 
 function buildPts(days){
-  const now=calcM().val;
-  if(hist.length>=2){const cut=new Date();cut.setDate(cut.getDate()-days);const pts=hist.filter(h=>new Date(h.d)>=cut).map(h=>({x:h.d,y:h.v}));if(pts.length>1)return pts}
-  const arr=[];for(let i=days-1;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);const f=i===0?1:1-(i*(.0005+Math.random()*.0004));const n=(Math.random()-.48)*.014;arr.push({x:d.toISOString().slice(0,10),y:parseFloat(Math.max(0,now*f*(1+n)).toFixed(2))})}
+  if(hist.length>=2){
+    const cut=new Date();cut.setDate(cut.getDate()-days);
+    const pts=hist.filter(h=>new Date(h.d)>=cut);
+    if(pts.length>1)return pts;
+  }
+  // Fallback: simulate with current values
+  const m=calcM();
+  const cash=parseFloat(localStorage.getItem('pf6_cash')||0);
+  const arr=[];
+  for(let i=days-1;i>=0;i--){
+    const d=new Date();d.setDate(d.getDate()-i);
+    const f=i===0?1:1-(i*(.0005+Math.random()*.0004));
+    const n=(Math.random()-.48)*.014;
+    const cartera=parseFloat(Math.max(0,m.val*f*(1+n)).toFixed(2));
+    const cuenta=parseFloat((cartera+cash).toFixed(2));
+    arr.push({d:d.toISOString().slice(0,10),cartera,cash,cuenta});
+  }
   return arr;
 }
 
@@ -451,18 +589,42 @@ function setPer(d){aper=d;document.querySelectorAll('.pb').forEach((b,i)=>b.clas
 function drawLine(days){
   const ctx=document.getElementById('lc');if(!ctx)return;
   if(lc)lc.destroy();
-  const pts=buildPts(days),vals=pts.map(p=>p.y),up=vals[vals.length-1]>=(vals[0]||0),col=up?'#00c97a':'#ff3b5c';
+  const pts=buildPts(days);
+  if(!pts.length)return;
+  const labels=pts.map(p=>p.d);
+  const carteraVals=pts.map(p=>p.cartera);
+  const cashVals=pts.map(p=>p.cash);
+  const cuentaVals=pts.map(p=>p.cuenta);
+  const lastC=carteraVals[carteraVals.length-1],firstC=carteraVals[0];
+  const upColor=lastC>=(firstC||0)?'#00c97a':'#ff3b5c';
+
   lc=new Chart(ctx,{type:'line',
-    data:{labels:pts.map(p=>p.x),datasets:[{data:vals,borderColor:col,borderWidth:1.5,pointRadius:0,pointHoverRadius:3,pointHoverBackgroundColor:col,fill:true,
-      backgroundColor:c2=>{const g=c2.chart.ctx.createLinearGradient(0,0,0,200);g.addColorStop(0,col+'22');g.addColorStop(1,col+'00');return g},tension:.4}]},
+    data:{
+      labels,
+      datasets:[
+        {label:'Cuenta',data:cuentaVals,borderColor:'#fff',borderWidth:1.5,pointRadius:0,pointHoverRadius:3,fill:false,tension:.35},
+        {label:'Cartera',data:carteraVals,borderColor:upColor,borderWidth:1.5,pointRadius:0,pointHoverRadius:3,fill:true,
+          backgroundColor:c2=>{const g=c2.chart.ctx.createLinearGradient(0,0,0,200);g.addColorStop(0,upColor+'28');g.addColorStop(1,upColor+'00');return g},tension:.35},
+        {label:'Cash',data:cashVals,borderColor:'rgba(255,255,255,.25)',borderWidth:1,borderDash:[3,3],pointRadius:0,pointHoverRadius:3,fill:false,tension:.35},
+      ]
+    },
     options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
-      plugins:{legend:{display:false},tooltip:{backgroundColor:'#111',borderColor:'rgba(255,255,255,.1)',borderWidth:1,
-        titleFont:{family:'JetBrains Mono',size:9},bodyFont:{family:'JetBrains Mono',size:12},titleColor:'rgba(255,255,255,.4)',bodyColor:'#fff',
-        callbacks:{title:i=>{const d=new Date(i[0].label);return d.toLocaleDateString('es-ES',{day:'2-digit',month:'short',year:'numeric'})},label:i=>`  ${fmt(i.raw)}`}}},
+      plugins:{
+        legend:{display:false},
+        tooltip:{backgroundColor:'#111',borderColor:'rgba(255,255,255,.1)',borderWidth:1,
+          titleFont:{family:'JetBrains Mono',size:9},bodyFont:{family:'JetBrains Mono',size:11},
+          titleColor:'rgba(255,255,255,.4)',bodyColor:'#fff',
+          callbacks:{
+            title:i=>{const d=new Date(i[0].label);return d.toLocaleDateString('es-ES',{day:'2-digit',month:'short',year:'numeric'})},
+            label:i=>`  ${i.dataset.label}: ${fmt(i.raw,2)}`
+          }
+        }
+      },
       scales:{
-        x:{grid:{color:'rgba(255,255,255,.04)',drawBorder:false},ticks:{color:'rgba(255,255,255,.2)',font:{family:'JetBrains Mono',size:9},maxTicksLimit:5,callback:(v,i,tks)=>{if(i===0||i===tks.length-1){const d=new Date(pts[i]?.x);return d.toLocaleDateString('es-ES',{day:'2-digit',month:'short'})}return''}},border:{display:false}},
-        y:{position:'right',grid:{color:'rgba(255,255,255,.04)',drawBorder:false},ticks:{color:'rgba(255,255,255,.2)',font:{family:'JetBrains Mono',size:9},callback:v=>'€'+v.toLocaleString('es-ES',{maximumFractionDigits:0})},border:{display:false}}
-      }}
+        x:{grid:{color:'rgba(255,255,255,.04)',drawBorder:false},ticks:{color:'rgba(255,255,255,.2)',font:{family:'JetBrains Mono',size:9},maxTicksLimit:6,callback:(v,i,tks)=>{if(i===0||i===tks.length-1||i===Math.floor(tks.length/2)){const d=new Date(pts[i]?.d);return d.toLocaleDateString('es-ES',{day:'2-digit',month:'short'})}return''}},border:{display:false}},
+        y:{position:'right',grid:{color:'rgba(255,255,255,.04)',drawBorder:false},ticks:{color:'rgba(255,255,255,.2)',font:{family:'JetBrains Mono',size:9},callback:v=>'€'+v.toLocaleString('es-ES',{maximumFractionDigits:0,useGrouping:true})},border:{display:false}}
+      }
+    }
   });
 }
 
@@ -484,7 +646,7 @@ function drawStats(){
   let best=null,bP=-Infinity,worst=null,wP=Infinity;
   pf.forEach(p=>{const pp=(gP(p)-p.avgPrice)/p.avgPrice*100;if(pp>bP){bP=pp;best=p}if(pp<wP){wP=pp;worst=p}});
   document.getElementById('stats').innerHTML=`
-    <div class="sc"><div class="sc-l">Dividendo anual</div><div class="sc-v">${fmt(m.div,0)}</div><div class="sc-s" style="color:${yc(m.yld)}">${m.yld.toFixed(2)}% yield · ${fmt(m.div/12,0)}/mes</div></div>
+    <div class="sc"><div class="sc-l">Dividendo anual</div><div class="sc-v">${fmt(m.div,2)}</div><div class="sc-s" style="color:${yc(m.yld)}">${m.yld.toFixed(2)}% yield · ${fmt(m.div/12,2)}/mes</div></div>
     <div class="sc"><div class="sc-l">Mejor posición</div><div class="sc-v" style="color:var(--up)">${best?best.symbol:'—'}</div><div class="sc-s up">${best?fp(bP):''}</div></div>
     <div class="sc"><div class="sc-l">Peor posición</div><div class="sc-v" style="color:var(--dn)">${worst?worst.symbol:'—'}</div><div class="sc-s dn">${worst?fp(wP):''}</div></div>`;
 }
@@ -493,7 +655,29 @@ function drawStats(){
 function renderPos(){
   const el=document.getElementById('tab-posiciones');
   const noKey=!fkey;
-  if(!pf.length){el.innerHTML=`<div class="empty">Sin posiciones · Añade en Configuración</div>`;return}
+  const wasOpen=document.getElementById('add-form-body')?.classList.contains('open');
+
+  if(!pf.length){
+    el.innerHTML=`
+      <div class="add-form" id="add-form">
+        <div class="add-form-hd" onclick="toggleAddForm()">
+          <span class="add-form-ttl">+ Nueva posición</span>
+          <span class="add-form-toggle" id="add-form-arrow">▾</span>
+        </div>
+        <div class="add-form-body open" id="add-form-body">
+          <div class="fg" style="margin-bottom:10px">
+            <div class="fi"><label class="fl">Ticker</label><input id="fsym" list="sdl" placeholder="AAPL, ASML, SAN.MC…" style="text-transform:uppercase" onblur="lookupTicker()" onkeydown="if(event.key==='Enter')lookupTicker()"><datalist id="sdl"><option value="AAPL"><option value="MSFT"><option value="GOOGL"><option value="AMZN"><option value="TSLA"><option value="META"><option value="NVDA"><option value="NFLX"><option value="V"><option value="JPM"><option value="JNJ"><option value="PFE"><option value="ASML"><option value="SAP"><option value="MC.PA"><option value="SAN.MC"><option value="IBE.MC"><option value="REP.MC"><option value="SHEL.L"><option value="BP.L"></datalist></div>
+            <div class="fi"><label class="fl">Acciones</label><input type="number" id="fshares" placeholder="10" step="any" min="0"></div>
+            <div class="fi"><label class="fl">BEP (divisa local)</label><input type="number" id="fprice" placeholder="150.00" step="any" min="0"></div>
+          </div>
+          <div id="lookup-card" class="lookup-card"><div class="lookup-logo" id="lookup-logo"></div><div><div class="lookup-name" id="lookup-name"></div><div class="lookup-meta" id="lookup-meta"></div></div></div>
+          <div id="lookup-spin" style="font-family:var(--mono);font-size:9px;color:var(--fg3);margin-top:6px;display:none"></div>
+          <div class="fa" style="margin-top:12px"><button class="btn btn-p" onclick="addPos()">Añadir</button><span id="fmsg" class="fm"></span></div>
+          <div class="fn" style="margin-top:10px">// Tab o Enter en el ticker para autocompletar · BEP en divisa local del activo</div>
+        </div>
+      </div>`;
+    return;
+  }
 
   const totalValEur=pf.reduce((s,p)=>s+p.shares*gPeur(p),0)||1;
 
@@ -517,13 +701,13 @@ function renderPos(){
     const priceFmt=noKey?na:`<span class="mn">${fmtLocal(priceLocal,cur)}</span>`;
     const bepFmt=`<span class="mn">${fmtLocal(bep,cur)}</span>`;
     const chgFmt=noKey?na:`<span class="mn ${chgPct>=0?'up':'dn'}">${fp(chgPct)}</span>`;
-    const valFmt=noKey?na:`<span class="mn">${fmt(valEur,0)}</span>`;
-    const revalFmt=noKey?na:`<span class="mn ${revalEur>=0?'up':'dn'}">${fmt(revalEur,0)}</span><span class="mn2 ${revalEur>=0?'up':'dn'}"> ${fp(revalP)}</span>`;
+    const valFmt=noKey?na:`<span class="mn">${fmt(valEur,2)}</span>`;
+    const revalFmt=noKey?na:`<span class="mn ${revalEur>=0?'up':'dn'}">${fmt(revalEur,2)}</span><span class="mn2 ${revalEur>=0?'up':'dn'}"> ${fp(revalP)}</span>`;
     const pesoFmt=noKey?na:`<span class="mn">${peso.toFixed(2)}%</span>`;
     const divFmt=div>0?`<span class="mn">${fmt(div)}</span>`:na;
     const retFmt=`<input class="ed" type="number" placeholder="0" min="0" max="100" step="1" value="${retencPct||''}" onchange="saveRetencion('${p.symbol}',this.value)" style="width:52px">`;
-    const yldFmt=div>0?`<span class="mn ${yld>=3?'up':yld>=1?'gold':''}">${yld.toFixed(2)}%</span>`:na;
-    const yocFmt=div>0?`<span class="mn ${yoc>=3?'up':yoc>=1?'gold':''}">${yoc.toFixed(2)}%</span>`:na;
+    const yldFmt=div>0?`<span class="mn ${yld>=3?'up':''}">${yld.toFixed(2)}%</span>`:na;
+    const yocFmt=div>0?`<span class="mn ${yoc>=3?'up':''}">${yoc.toFixed(2)}%</span>`:na;
 
     return`<tr>
       <td style="text-align:left">
@@ -581,12 +765,12 @@ function renderPos(){
     `<tr style="border-top:1px solid var(--b2);background:var(--s2)">
       <td style="text-align:left;font-family:var(--mono);font-size:9px;color:var(--fg2)">CARTERA</td>
       <td></td><td></td><td></td><td></td>
-      <td><span class="mn">${fmt(totVal,0)}</span></td>
-      <td><span class="mn ${totReval>=0?'up':'dn'}">${fmt(totReval,0)}</span><span class="mn2 ${totReval>=0?'up':'dn'}"> ${fp(totRevalP)}</span></td>
+      <td><span class="mn">${fmt(totVal,2)}</span></td>
+      <td><span class="mn ${totReval>=0?'up':'dn'}">${fmt(totReval,2)}</span><span class="mn2 ${totReval>=0?'up':'dn'}"> ${fp(totRevalP)}</span></td>
       <td><span class="mn">100%</span></td>
-      <td><span class="mn">${fmt(totDiv,0)}</span></td>
+      <td><span class="mn">${fmt(totDiv,2)}</span></td>
       <td></td>
-      <td><span class="mn ${totYld>=3?'up':totYld>=1?'gold':''}">${totYld.toFixed(2)}%</span></td>
+      <td><span class="mn ${totYld>=3?'up':''}">${totYld.toFixed(2)}%</span></td>
       <td></td><td></td>
     </tr>
     <tr style="background:var(--s2)">
@@ -608,48 +792,153 @@ function renderPos(){
       <td style="text-align:left" colspan="5">
         <span style="font-family:var(--mono);font-size:9px;font-weight:500;color:var(--fg);letter-spacing:.06em">TOTAL CUENTA</span>
       </td>
-      <td><span class="mn" style="font-weight:500;color:var(--fg)">${fmt(totalCuenta,0)}</span></td>
+      <td><span class="mn" style="font-weight:500;color:var(--fg)">${fmt(totalCuenta,2)}</span></td>
       <td colspan="7"></td>
     </tr>`;
 
   el.innerHTML=`
-    <div class="sec-row"><span class="sec-l">${pf.length} posicion${pf.length!==1?'es':''}</span>${!noKey?`<span class="sec-l" style="color:var(--fg3)">Tipos de cambio via Finnhub · actualizado</span>`:''}</div>
-    <div class="tbl-wrap">
-      ${noKey?`<div class="no-key-bar">Sin API key — configura en ⚙ para ver precios y tipos de cambio en tiempo real</div>`:''}
-      <table>
-        <colgroup>
-          <col style="width:14%">  <!-- Empresa -->
-          <col style="width:6%">   <!-- Acciones -->
-          <col style="width:7%">   <!-- Precio -->
-          <col style="width:7%">   <!-- BEP -->
-          <col style="width:5%">   <!-- Δ% -->
-          <col style="width:8%">   <!-- Valor € -->
-          <col style="width:10%">  <!-- Revalorización -->
-          <col style="width:5%">   <!-- Peso -->
-          <col style="width:8%">   <!-- Dividendo -->
-          <col style="width:6%">   <!-- Retención -->
-          <col style="width:6%">   <!-- Yield -->
-          <col style="width:6%">   <!-- YoC -->
-          <col style="width:4%">   <!-- Borrar -->
-        </colgroup>
-        <thead><tr>
-          <th style="text-align:left">Empresa</th>
-          <th>Acciones</th>
-          <th>Precio</th>
-          <th>BEP</th>
-          <th>Δ%</th>
-          <th>Valor (€)</th>
-          <th>Revalorización</th>
-          <th>Peso</th>
-          <th>Div. (€)</th>
-          <th>Ret. %</th>
-          <th>Yield</th>
-          <th>YoC</th>
-          <th></th>
-        </tr></thead>
-        <tbody>${rows}${totRow}</tbody>
-      </table>
-      <div class="tbl-hint">// BEP = Break Even Point (precio medio de compra) · Dividendo neto tras retención · YoC = Yield on Cost</div>
+    <div class="add-form" id="add-form">
+      <div class="add-form-hd" onclick="toggleAddForm()">
+        <span class="add-form-ttl">+ Nueva posición</span>
+        <span class="add-form-toggle" id="add-form-arrow">▸</span>
+      </div>
+      <div class="add-form-body" id="add-form-body">
+        <div class="fg" style="margin-bottom:10px">
+          <div class="fi">
+            <label class="fl">Ticker</label>
+            <input id="fsym" list="sdl" placeholder="AAPL, ASML, SAN.MC…" style="text-transform:uppercase" onblur="lookupTicker()" onkeydown="if(event.key==='Enter')lookupTicker()">
+            <datalist id="sdl"><option value="AAPL"><option value="MSFT"><option value="GOOGL"><option value="AMZN"><option value="TSLA"><option value="META"><option value="NVDA"><option value="NFLX"><option value="V"><option value="JPM"><option value="JNJ"><option value="PFE"><option value="ASML"><option value="SAP"><option value="MC.PA"><option value="SAN.MC"><option value="IBE.MC"><option value="REP.MC"><option value="SHEL.L"><option value="BP.L"></datalist>
+          </div>
+          <div class="fi"><label class="fl">Acciones</label><input type="number" id="fshares" placeholder="10" step="any" min="0"></div>
+          <div class="fi"><label class="fl">BEP (divisa local)</label><input type="number" id="fprice" placeholder="150.00" step="any" min="0"></div>
+        </div>
+        <div id="lookup-card" class="lookup-card">
+          <div class="lookup-logo" id="lookup-logo"></div>
+          <div><div class="lookup-name" id="lookup-name"></div><div class="lookup-meta" id="lookup-meta"></div></div>
+        </div>
+        <div id="lookup-spin" style="font-family:var(--mono);font-size:9px;color:var(--fg3);margin-top:6px;display:none"></div>
+        <div class="fa" style="margin-top:12px">
+          <button class="btn btn-p" onclick="addPos()">Añadir</button>
+          <span id="fmsg" class="fm"></span>
+        </div>
+        <div class="fn" style="margin-top:10px">// Tab o Enter en el ticker para autocompletar nombre, país y divisa · BEP en divisa local del activo</div>
+      </div>
+    </div>
+    <div class="sec-row"><span class="sec-l">${pf.length} posicion${pf.length!==1?'es':''}</span>${!noKey?`<span class="sec-l" style="color:var(--fg3)">Finnhub · live</span>`:''}</div>
+
+    <div class="pos-desktop">
+      <div class="tbl-wrap">
+        ${noKey?`<div class="no-key-bar">Sin API key — configura en ⚙ para ver precios y tipos de cambio en tiempo real</div>`:''}
+        <table>
+          <colgroup>
+            <col style="width:14%">
+            <col style="width:6%">
+            <col style="width:7%">
+            <col style="width:7%">
+            <col style="width:5%">
+            <col style="width:8%">
+            <col style="width:10%">
+            <col style="width:5%">
+            <col style="width:8%">
+            <col style="width:6%">
+            <col style="width:6%">
+            <col style="width:6%">
+            <col style="width:4%">
+          </colgroup>
+          <thead><tr>
+            <th style="text-align:left">Empresa</th>
+            <th>Acciones</th>
+            <th>Precio</th>
+            <th>BEP</th>
+            <th>Δ%</th>
+            <th>Valor (€)</th>
+            <th>Revalorización</th>
+            <th>Peso</th>
+            <th>Div. (€)</th>
+            <th>Ret. %</th>
+            <th>Yield</th>
+            <th>YoC</th>
+            <th></th>
+          </tr></thead>
+          <tbody>${rows}${totRow}</tbody>
+        </table>
+        <div class="tbl-hint">// BEP = precio medio de compra · Dividendo neto tras retención · YoC = Yield on Cost</div>
+      </div>
+    </div>
+
+    <div class="pos-mobile">
+      ${pf.map((p,i)=>{
+        const cur=gCur(p),rate=fxRate(cur);
+        const priceLocal=gP(p),priceEur=priceLocal*rate;
+        const chg=gC(p);
+        const valEur=p.shares*priceEur;
+        const costEur=p.shares*avgPeur(p);
+        const revalEur=valEur-costEur,revalP=costEur>0?revalEur/costEur*100:0;
+        const div=gD(p),yld=priceEur>0?div/priceEur*100:0;
+        const retencPct=parseFloat(p.retencion||0);
+        return`<div class="pos-card">
+          <div class="pos-card-top">
+            <div>
+              <div class="pos-card-name">${p.name||p.symbol}</div>
+              <div class="pos-card-tags">
+                <span class="tag-sm">${p.symbol}</span>
+                ${p.country?`<span class="tag-sm">${p.country}</span>`:''}
+                <span class="tag-sm">${cur}</span>
+              </div>
+            </div>
+            <div style="text-align:right">
+              <div style="font-family:var(--mono);font-size:13px;font-weight:500">${noKey?'—':fmtLocal(priceLocal,cur)}</div>
+              <div style="font-family:var(--mono);font-size:10px;color:${chg>=0?'var(--up)':'var(--dn)'}">${noKey?'':fp(chg)}</div>
+            </div>
+          </div>
+          <div class="pos-card-grid">
+            <div class="pos-card-item">
+              <span class="pos-card-lbl">Acciones</span>
+              <input class="pos-card-edit" type="number" value="${p.shares}" step="any" min="0" onchange="saveShares('${p.symbol}',this.value)">
+            </div>
+            <div class="pos-card-item">
+              <span class="pos-card-lbl">BEP (${cur})</span>
+              <input class="pos-card-edit" type="number" value="${p.avgPrice}" step="any" min="0" onchange="saveBep('${p.symbol}',this.value)">
+            </div>
+            <div class="pos-card-item">
+              <span class="pos-card-lbl">Ret. %</span>
+              <input class="pos-card-edit" type="number" value="${retencPct||''}" placeholder="0" step="1" min="0" max="100" onchange="saveRetencion('${p.symbol}',this.value)">
+            </div>
+            <div class="pos-card-item">
+              <span class="pos-card-lbl">Valor (€)</span>
+              <span class="pos-card-val">${noKey?'—':fmt(valEur,2)}</span>
+            </div>
+            <div class="pos-card-item">
+              <span class="pos-card-lbl">Reval.</span>
+              <span class="pos-card-val ${revalEur>=0?'up':'dn'}">${noKey?'—':fp(revalP)}</span>
+            </div>
+            <div class="pos-card-item">
+              <span class="pos-card-lbl">Yield</span>
+              <span class="pos-card-val">${div>0?yld.toFixed(2)+'%':'—'}</span>
+            </div>
+          </div>
+          <div style="text-align:right;margin-top:10px">
+            <button class="btn btn-rm" onclick="rmPos(${i})">✕ Eliminar</button>
+          </div>
+        </div>`;
+      }).join('')}
+      <div class="pos-totals">
+        <div class="pos-totals-row">
+          <span class="pos-totals-lbl">CARTERA</span>
+          <span class="pos-totals-val">${noKey?'—':fmt(totVal,2)}</span>
+        </div>
+        <div class="pos-totals-row" style="border-top:1px solid var(--b1);margin-top:6px;padding-top:6px">
+          <span class="pos-totals-lbl">CASH</span>
+          <div style="display:flex;align-items:center;gap:4px">
+            <span style="font-family:var(--mono);font-size:10px;color:var(--fg3)">€</span>
+            <input class="pos-card-edit" type="number" placeholder="0" step="0.01" min="0" value="${cash||''}" onchange="saveCash(this.value)" style="width:100px">
+          </div>
+        </div>
+        <div class="pos-totals-row" style="border-top:1px solid var(--b1);margin-top:6px;padding-top:6px">
+          <span class="pos-totals-lbl" style="color:var(--fg);font-weight:500">TOTAL CUENTA</span>
+          <span class="pos-totals-val" style="color:var(--fg)">${fmt(totalCuenta,2)}</span>
+        </div>
+      </div>
     </div>`;
 }
 
@@ -728,44 +1017,7 @@ function renderConfig(){
         <button class="btn btn-p" onclick="applyKey()">Guardar</button>
       </div>
       <div id="kmsg" style="font-family:var(--mono);font-size:9px;margin-top:8px"></div>
-    </div>
-
-    <div class="fc">
-      <div class="fc-ttl">Añadir posición · Acciones</div>
-      <div class="fg">
-        <div class="fi">
-          <label class="fl">Ticker</label>
-          <input id="fsym" list="sdl" placeholder="AAPL, ASML, SAN.MC…" style="text-transform:uppercase" onblur="lookupTicker()" onkeydown="if(event.key==='Enter')lookupTicker()">
-          <datalist id="sdl"><option value="AAPL"><option value="MSFT"><option value="GOOGL"><option value="AMZN"><option value="TSLA"><option value="META"><option value="NVDA"><option value="NFLX"><option value="V"><option value="JPM"><option value="JNJ"><option value="PFE"><option value="ASML"><option value="SAP"><option value="MC.PA"><option value="SAN.MC"><option value="IBE.MC"><option value="REP.MC"><option value="SHEL.L"><option value="BP.L"></datalist>
-        </div>
-        <div class="fi"><label class="fl">Número de acciones</label><input type="number" id="fshares" placeholder="10" step="any" min="0"></div>
-        <div class="fi"><label class="fl">Precio de compra (divisa local)</label><input type="number" id="fprice" placeholder="150.00" step="any" min="0"></div>
-      </div>
-      <div id="lookup-card" class="lookup-card">
-        <div class="lookup-logo" id="lookup-logo"></div>
-        <div>
-          <div class="lookup-name" id="lookup-name"></div>
-          <div class="lookup-meta" id="lookup-meta"></div>
-        </div>
-      </div>
-      <div id="lookup-spin" style="font-family:var(--mono);font-size:9px;color:var(--fg3);margin-top:8px;display:none"></div>
-      <div class="fa" style="margin-top:14px"><button class="btn btn-p" onclick="addPos()">Añadir</button><span id="fmsg" class="fm"></span></div>
-      <div class="fn">
-        // Escribe el ticker y pulsa Tab o Enter para buscar automáticamente nombre, país y bolsa<br>
-        // AAPL (NASDAQ), ASML (Euronext), SAN.MC (Madrid), MC.PA (París), SHEL.L (Londres)<br>
-        // Dividendo obtenido automáticamente · Próximamente: fondos indexados y ETFs
-      </div>
-    </div>
-
-    ${pf.length?`<div class="fc">
-      <div class="fc-ttl">Posiciones actuales</div>
-      <div class="tbl-wrap">
-        <table>
-          <thead><tr><th style="text-align:left">Ticker</th><th style="text-align:left">Nombre</th><th style="text-align:left">País</th><th>Acciones</th><th>Precio compra</th><th></th></tr></thead>
-          <tbody>${pf.map((p,i)=>`<tr><td class="t-sym">${p.symbol}</td><td style="color:var(--fg2)">${p.name||''}</td><td style="color:var(--fg3);font-family:var(--mono);font-size:10px">${p.country||'—'}</td><td class="t-n">${p.shares.toLocaleString('es-ES',{maximumFractionDigits:6})}</td><td class="t-n">${fmt(p.avgPrice)}</td><td><button class="btn btn-rm" onclick="rmPos(${i})">✕</button></td></tr>`).join('')}</tbody>
-        </table>
-      </div>
-    </div>`:''}`;
+    </div>`;
 }
 
 /* ─── ACTIONS ─── */
@@ -831,18 +1083,21 @@ async function addPos(){
     msg.textContent='Añadido';
   }
   msg.style.color='var(--up)';save();
-  // Reset form and lookup card
   ['fsym','fshares','fprice'].forEach(id=>{const e=document.getElementById(id);if(e)e.value=''});
   const card=document.getElementById('lookup-card');if(card)card.className='lookup-card';
   const spin=document.getElementById('lookup-spin');if(spin)spin.style.display='none';
   setTimeout(()=>{msg.textContent=''},3000);
-  renderConfig();
+  renderPos();
+  // Re-open form after render and show loading msg
+  const body=document.getElementById('add-form-body');
+  const arrow=document.getElementById('add-form-arrow');
+  if(body){body.classList.add('open');if(arrow)arrow.textContent='▾';}
   if(fkey){
-    msg.textContent='Obteniendo precio y dividendo…';msg.style.color='var(--fg3)';
+    const msg2=document.getElementById('fmsg');
+    if(msg2){msg2.textContent='Obteniendo precio y dividendo…';msg2.style.color='var(--fg3)';}
     try{await fetchQuote(sym);await sleep(120);await fetchDividend(sym)}catch{}
     recHist();renderAll();
-    msg.textContent='Listo';msg.style.color='var(--up)';
-    setTimeout(()=>{msg.textContent=''},2000);
+    if(msg2){msg2.textContent='Listo';msg2.style.color='var(--up)';setTimeout(()=>{if(msg2)msg2.textContent=''},2000);}
   }
 }
 
@@ -860,27 +1115,140 @@ function saveBep(sym,v){
   if(isNaN(val)||val<0)return;
   pf[idx].avgPrice=val;save();renderPos();updateSidebar();
 }
-function saveCash(v){localStorage.setItem('pf6_cash',parseFloat(v)||0);renderPos();updateSidebar()}
+function saveCash(v){
+  const val=parseFloat(v)||0;
+  localStorage.setItem('pf6_cash',val);
+  // Record cash history snapshot
+  const today=new Date().toISOString().slice(0,10);
+  const last=cashHist[cashHist.length-1];
+  if(last&&last.d===today)cashHist[cashHist.length-1].v=val;
+  else cashHist.push({d:today,v:val});
+  if(cashHist.length>730)cashHist=cashHist.slice(-730);
+  save();
+  renderPos();updateSidebar();
+  if(curTab==='dashboard')drawLine(aper);
+}
 function saveTgt(s,v){tgts[s]=parseFloat(v)||0;localStorage.setItem('pf6t',JSON.stringify(tgts));renderPos()}
 function saveRetencion(s,v){const idx=pf.findIndex(p=>p.symbol===s);if(idx>=0){pf[idx].retencion=parseFloat(v)||0;save();renderPos()}}
-function rmPos(i){pf.splice(i,1);save();fetchAll();if(curTab==='config')renderConfig()}
+function toggleAddForm(){
+  const body=document.getElementById('add-form-body');
+  const arrow=document.getElementById('add-form-arrow');
+  if(!body)return;
+  const open=body.classList.toggle('open');
+  if(arrow)arrow.textContent=open?'▾':'▸';
+}
 
-/* ─── NAV ─── */
+function rmPos(i){pf.splice(i,1);save();fetchAll()}
+
+/* ─── HISTÓRICO ─── */
+function renderHistorico(){
+  const el=document.getElementById('tab-historico');
+  const sorted=[...hist].sort((a,b)=>b.d.localeCompare(a.d)); // newest first
+
+  if(!sorted.length){
+    el.innerHTML=`
+      <div class="sec-row"><span class="sec-l">Histórico diario</span></div>
+      <div class="empty" style="background:var(--s1);border:1px solid var(--b1);border-radius:10px">
+        Sin registros aún.<br><br>
+        <span style="color:var(--fg3)">El primer registro se guardará automáticamente esta noche a las 00:00h.<br>
+        A partir de entonces se registrará un snapshot diario del valor de cierre.</span>
+      </div>`;
+    return;
+  }
+
+  // Summary cards
+  const first=sorted[sorted.length-1];
+  const last=sorted[0];
+  const carteraVar=first.cartera>0?(last.cartera-first.cartera)/first.cartera*100:0;
+  const cuentaVar=first.cuenta>0?(last.cuenta-first.cuenta)/first.cuenta*100:0;
+
+  const rows=sorted.map((h,i)=>{
+    const prev=sorted[i+1];
+    const dCartera=prev?h.cartera-prev.cartera:null;
+    const dCuenta=prev?h.cuenta-prev.cuenta:null;
+    const date=new Date(h.d+'T12:00:00');
+    const dateStr=date.toLocaleDateString('es-ES',{weekday:'short',day:'2-digit',month:'short',year:'numeric'});
+    return`<tr>
+      <td style="text-align:left">
+        <span class="mn">${dateStr}</span>
+      </td>
+      <td><span class="mn">${fmt(h.cartera,2)}</span></td>
+      <td>
+        ${dCartera!==null
+          ?`<span class="mn ${dCartera>=0?'up':'dn'}">${dCartera>=0?'+':''}${fmt(dCartera,2)}</span>`
+          :'<span class="mn2">—</span>'}
+      </td>
+      <td><span class="mn">${fmt(h.cash,2)}</span></td>
+      <td><span class="mn" style="font-weight:500">${fmt(h.cuenta,2)}</span></td>
+      <td>
+        ${dCuenta!==null
+          ?`<span class="mn ${dCuenta>=0?'up':'dn'}">${dCuenta>=0?'+':''}${fmt(dCuenta,2)}</span>`
+          :'<span class="mn2">—</span>'}
+      </td>
+      <td>
+        <button class="btn btn-rm" style="font-size:10px;padding:3px 7px" onclick="deleteHistEntry('${h.d}')">✕</button>
+      </td>
+    </tr>`;
+  }).join('');
+
+  el.innerHTML=`
+    <div class="sec-row">
+      <span class="sec-l">Histórico diario · ${sorted.length} registros</span>
+      <span class="sec-l" style="color:var(--fg3)">Snapshot a las 00:00h cada día</span>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px">
+      <div class="sc"><div class="sc-l">Cartera actual</div><div class="sc-v">${fmt(last.cartera,2)}</div><div class="sc-s ${carteraVar>=0?'up':'dn'}">${carteraVar>=0?'+':''}${carteraVar.toFixed(2)}% desde inicio</div></div>
+      <div class="sc"><div class="sc-l">Cash actual</div><div class="sc-v">${fmt(last.cash,2)}</div></div>
+      <div class="sc"><div class="sc-l">Total cuenta</div><div class="sc-v">${fmt(last.cuenta,2)}</div><div class="sc-s ${cuentaVar>=0?'up':'dn'}">${cuentaVar>=0?'+':''}${cuentaVar.toFixed(2)}% desde inicio</div></div>
+    </div>
+    <div class="tbl-wrap">
+      <table style="min-width:0">
+        <thead><tr>
+          <th style="text-align:left">Fecha</th>
+          <th>Cartera</th>
+          <th>Δ Cartera</th>
+          <th>Cash</th>
+          <th>Total cuenta</th>
+          <th>Δ Cuenta</th>
+          <th></th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+      <div class="tbl-hint">// Snapshot automático a las 00:00h · El primer registro requiere que la app esté abierta o en segundo plano</div>
+    </div>`;
+}
+
+function deleteHistEntry(d){
+  hist=hist.filter(h=>h.d!==d);
+  save();
+  renderHistorico();
+  drawLine(aper);
+}
 function go(t){
   curTab=t;
-  document.querySelectorAll('.nb').forEach((b,i)=>b.classList.toggle('on',['dashboard','posiciones','dividendos','config'][i]===t));
+  const tabs=['dashboard','posiciones','dividendos','historico','config'];
+  document.querySelectorAll('.nb').forEach((b,i)=>b.classList.toggle('on',tabs[i]===t));
+  document.querySelectorAll('.mob-nb').forEach((b,i)=>b.classList.toggle('on',tabs[i]===t));
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('on'));
   document.getElementById('tab-'+t).classList.add('on');
   if(t==='dashboard')renderDash();
   if(t==='posiciones')renderPos();
   if(t==='dividendos')renderDiv();
+  if(t==='historico')renderHistorico();
   if(t==='config')renderConfig();
 }
 
 /* ─── INIT ─── */
 setInterval(updateClock,1000);
+// Migrate old hist format {d,v} → {d,cartera,cash,cuenta}
+if(hist.length&&hist[0].v!==undefined){
+  const cash=parseFloat(localStorage.getItem('pf6_cash')||0);
+  hist=hist.map(h=>({d:h.d,cartera:h.v,cash,cuenta:h.v+cash}));
+  save();
+}
 if(fkey&&pf.length){fetchAll()}else{renderAll()}
 setInterval(()=>{if(fkey&&pf.length)fetchAll()},60000);
+scheduleSnapshot();
 </script>
 </body>
 </html>
