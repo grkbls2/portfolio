@@ -206,7 +206,7 @@ tbody tr:hover{background:var(--s2)}
 .obj-table td:first-child{text-align:left;color:var(--fg2);font-size:10px}
 .obj-table tbody tr:last-child td{border-bottom:none}
 .obj-table tbody tr:hover{background:var(--s2)}
-.obj-ed{width:80px;padding:4px 6px;font-family:var(--mono);font-size:11px;background:var(--s3);border:1px solid var(--b2);border-radius:4px;color:var(--fg);text-align:right;transition:border-color .1s}
+.obj-ed{width:100%;max-width:80px;padding:4px 6px;font-family:var(--mono);font-size:11px;background:var(--s3);border:1px solid var(--b2);border-radius:4px;color:var(--fg);text-align:right;transition:border-color .1s;box-sizing:border-box}
 .obj-ed:focus{outline:none;border-color:var(--b3)}
 .obj-present-ok{color:var(--up);font-weight:500}
 .obj-present-warn{color:var(--dn);font-weight:500}
@@ -305,8 +305,7 @@ tbody tr:hover{background:var(--s2)}
       <div class="kpi"><div class="kpi-l">Cartera</div><div class="kpi-v" id="sb-cartera">€0</div></div>
       <div class="kpi"><div class="kpi-l">Cash</div><div class="kpi-v" id="sb-cash">€0</div></div>
       <div class="kpi"><div class="kpi-l">Invertido</div><div class="kpi-v" id="sb-inv">€0</div></div>
-      <div class="kpi"><div class="kpi-l">Posiciones</div><div class="kpi-v" id="sb-pos">0</div></div>
-      <div class="kpi" style="grid-column:span 2"><div class="kpi-l">Div. anual neto</div><div class="kpi-v" id="sb-div">€0</div><div style="display:flex;gap:12px;margin-top:3px"><div class="kpi-s"><span style="color:var(--fg3)">yield neto </span><span id="sb-yld-net">0,00%</span></div><div class="kpi-s"><span style="color:var(--fg3)">yield bruto </span><span id="sb-yld">0,00%</span></div></div></div>
+      <div class="kpi"><div class="kpi-l">Div. neto anual</div><div class="kpi-v" id="sb-div">€0</div><div class="kpi-s" id="sb-yld-net" style="color:var(--fg2)">0,00% yield neto</div></div>
     </div>
     <div class="nav">
       <button class="nb on" onclick="go('dashboard')"><span class="nb-ic">▲</span>Dashboard</button>
@@ -599,8 +598,8 @@ function updateSidebar(){
   document.getElementById('sb-inv').textContent=fmt(m.inv,2);
   document.getElementById('sb-pos').textContent=pf.length;
   document.getElementById('sb-div').textContent=fmt(divNeto,2);
+  const yn=document.getElementById('sb-yld-net');if(yn)yn.textContent=fmtN(yldNeto,2)+'% yield neto';
   document.getElementById('sb-yld').textContent=fmtN(m.yld,2)+'%';
-  const yn=document.getElementById('sb-yld-net');if(yn)yn.textContent=fmtN(yldNeto,2)+'%';
   // Mobile
   const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v};
   set('mob-total','€ '+totalCuenta.toLocaleString('es-ES',{minimumFractionDigits:2,maximumFractionDigits:2,useGrouping:true}));
@@ -651,9 +650,8 @@ function renderDash(){
         <div class="donut-leg" id="dleg"></div>
       </div>
     </div>
-    <div class="stat-row" id="stats"></div>
     <div id="objetivos-block"></div>`;
-  setTimeout(()=>{drawLine(aper);drawDonut();drawStats();renderObjetivos()},30);
+  setTimeout(()=>{drawLine(aper);drawDonut();renderObjetivos()},30);
 }
 
 function buildPts(days){
@@ -821,7 +819,7 @@ function renderObjetivos(){
       max: '—',
     },
     {
-      label:'~Dividendo Neto',
+      label:'Dividendo Neto',
       min: edCell('div_min',obj.div_min,'600'),
       present: pCell(divNeto,obj.div_min,undefined,true),
       max: '—',
@@ -834,7 +832,7 @@ function renderObjetivos(){
         <span class="obj-ttl">Objetivos 2026</span>
         <span style="font-family:var(--mono);font-size:8px;color:var(--fg3)">Verde = dentro del objetivo · Rojo = fuera del objetivo</span>
       </div>
-      <table class="obj-table">
+      <table class="obj-table" style="table-layout:fixed;width:100%">
         <thead><tr>
           <th style="text-align:left">Métrica</th>
           <th>Mínimo</th>
