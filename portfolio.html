@@ -347,7 +347,8 @@ function logoEl(logo,sym,size=20){
 }
 function sourceLabel(src){
   if(!src)return'';
-  return`<span style="font-family:var(--mono);font-size:8px;color:var(--fg3);letter-spacing:.04em">${src==='yahoo'?'Yahoo Finance':'Finnhub'}</span>`;
+  const label=src==='yahoo'?'Yahoo Finance':src==='twelvedata'?'Twelve Data':'Finnhub';
+  return`<span style="font-family:var(--mono);font-size:8px;color:var(--fg3);letter-spacing:.04em">${label}</span>`;
 }
 
 let pf=JSON.parse(localStorage.getItem('pf6')||'[]');
@@ -357,6 +358,7 @@ let hist=JSON.parse(localStorage.getItem('pf6h')||'[]');
 // cashHist: [{d:'2024-01-15', v:5000}] — snapshot of cash each day it changes
 let cashHist=JSON.parse(localStorage.getItem('pf6ch')||'[]');
 let fkey=localStorage.getItem('fkey6')||'';
+let tdkey=localStorage.getItem('tdkey6')||'';
 let fx={};
 let aper=30,lc=null,dc=null,curTab='dashboard';
 
@@ -365,6 +367,7 @@ const CSYM={'USD':'$','GBP':'£','EUR':'€','JPY':'¥','CHF':'Fr','CAD':'C$','A
 
 function save(){localStorage.setItem('pf6',JSON.stringify(pf));localStorage.setItem('pf6t',JSON.stringify(tgts));localStorage.setItem('pf6h',JSON.stringify(hist));localStorage.setItem('pf6ch',JSON.stringify(cashHist))}
 function saveKey(k){fkey=k.trim();localStorage.setItem('fkey6',fkey)}
+function saveTdKey(k){tdkey=k.trim();localStorage.setItem('tdkey6',tdkey)}
 
 // Price in local currency
 function gP(p){return prices[p.symbol]?.price||p.avgPrice}
@@ -399,6 +402,35 @@ function calcM(){
 }
 
 /* ─── FETCH ─── */
+async function fetchQuoteTwelveData(sym){
+  if(!tdkey)throw new Error('no tdkey');
+  // Twelve Data uses same .MC suffix for BME
+  const r=await fetch(`https://api.twelvedata.com/quote?symbol=${encodeURIComponent(sym)}&apikey=${tdkey}`);
+  const d=await r.json();
+  if(d.status==='error'||!d.close)throw new Error('no td data');
+  const price=parseFloat(d.close);
+  const prev=parseFloat(d.previous_close)||price;
+  const change=prev>0?((price-prev)/prev)*100:0;
+  const cur=(d.currency||'EUR').toUpperCase();
+  return{price,change,currency:cur,name:d.name||sym};
+}
+
+async function fetchProfileTwelveData(sym){
+  if(!tdkey)return null;
+  try{
+    const r=await fetch(`https://api.twelvedata.com/quote?symbol=${encodeURIComponent(sym)}&apikey=${tdkey}`);
+    const d=await r.json();
+    if(d.status==='error'||!d.close)return null;
+    const currency=(d.currency||'EUR').toUpperCase();
+    const exchange=d.exchange||'';
+    const name=d.name||sym;
+    if(!prices[sym])prices[sym]={price:0,change:0,currency};
+    else prices[sym].currency=currency;
+    return{name,country:'',exchange,logo:'',currency,source:'twelvedata'};
+  }catch{return null}
+}
+
+/* ─── FETCH ─── */
 async function fetchQuoteYahoo(sym){
   const yahooUrl=`https://query1.finance.yahoo.com/v7/finance/quote?symbols=${encodeURIComponent(sym)}&fields=regularMarketPrice,regularMarketPreviousClose,currency,longName,shortName`;
   const proxyUrl=`https://api.allorigins.win/get?url=${encodeURIComponent(yahooUrl)}`;
@@ -419,7 +451,7 @@ async function fetchQuoteYahoo(sym){
 }
 
 async function fetchQuote(sym){
-  // Try Finnhub first
+  // 1) Try Finnhub
   try{
     const r=await fetch(`https://finnhub.io/api/v1/quote?symbol=${sym}&token=${fkey}`);
     const d=await r.json();
@@ -428,11 +460,18 @@ async function fetchQuote(sym){
     prices[sym]={price:d.c,change:d.pc>0?((d.c-d.pc)/d.pc)*100:0,currency:cur,source:'finnhub'};
     return;
   }catch{}
-  // Fallback to Yahoo Finance
+  // 2) Try Twelve Data
+  try{
+    const td=await fetchQuoteTwelveData(sym);
+    prices[sym]={...td,source:'twelvedata'};
+    const idx=pf.findIndex(p=>p.symbol===sym);
+    if(idx>=0&&!pf[idx].currency){pf[idx].currency=td.currency;save()}
+    return;
+  }catch{}
+  // 3) Try Yahoo Finance via proxy
   try{
     const y=await fetchQuoteYahoo(sym);
     prices[sym]={...y,source:'yahoo'};
-    // Also update currency on position if missing
     const idx=pf.findIndex(p=>p.symbol===sym);
     if(idx>=0&&!pf[idx].currency){pf[idx].currency=y.currency;save()}
   }catch{}
@@ -475,7 +514,7 @@ async function fetchDividend(sym){
 
 async function fetchProfile(sym){
   if(!fkey)return null;
-  // Try Finnhub first
+  // 1) Try Finnhub
   try{
     const r=await fetch(`https://finnhub.io/api/v1/stock/profile2?symbol=${sym}&token=${fkey}`);
     const d=await r.json();
@@ -486,7 +525,10 @@ async function fetchProfile(sym){
       return{name:d.name,country:d.country||'',exchange:d.exchange||'',logo:d.logo||'',currency};
     }
   }catch{}
-  // Fallback to Yahoo Finance via proxy for name and currency
+  // 2) Try Twelve Data
+  const tdProf=await fetchProfileTwelveData(sym);
+  if(tdProf)return tdProf;
+  // 3) Try Yahoo Finance via proxy
   try{
     const yahooUrl=`https://query1.finance.yahoo.com/v7/finance/quote?symbols=${encodeURIComponent(sym)}&fields=regularMarketPrice,currency,longName,shortName,fullExchangeName`;
     const proxyUrl=`https://api.allorigins.win/get?url=${encodeURIComponent(yahooUrl)}`;
@@ -1228,7 +1270,7 @@ function renderConfig(){
     <div class="fc">
       <div class="fc-ttl">API Key · Finnhub</div>
       <div style="font-family:var(--mono);font-size:9px;color:var(--fg2);line-height:2;margin-bottom:14px">
-        Precios en tiempo real y dividendos automáticos vía <span style="color:#4d9fff">finnhub.io</span> (plan gratuito · 60 req/min)<br>
+        Precios en tiempo real para mercados americanos y europeos principales · <span style="color:#4d9fff">finnhub.io</span> (plan gratuito · 60 req/min)<br>
         1 · Regístrate en finnhub.io (solo email, sin tarjeta)<br>
         2 · Copia tu API key del dashboard<br>
         3 · Pégala aquí — se guarda en tu navegador, no se envía a ningún servidor
@@ -1238,6 +1280,21 @@ function renderConfig(){
         <button class="btn btn-p" onclick="applyKey()">Guardar</button>
       </div>
       <div id="kmsg" style="font-family:var(--mono);font-size:9px;margin-top:8px"></div>
+    </div>
+
+    <div class="fc">
+      <div class="fc-ttl">API Key · Twelve Data</div>
+      <div style="font-family:var(--mono);font-size:9px;color:var(--fg2);line-height:2;margin-bottom:14px">
+        Fallback para acciones del <span style="color:#4d9fff">BME (Madrid)</span> y otras bolsas europeas no cubiertas por Finnhub · <span style="color:#4d9fff">twelvedata.com</span> (plan gratuito · 800 req/día)<br>
+        1 · Regístrate en twelvedata.com (solo email, sin tarjeta)<br>
+        2 · Copia tu API key del dashboard<br>
+        3 · Pégala aquí — se usa automáticamente cuando Finnhub no encuentra el ticker
+      </div>
+      <div style="display:flex;gap:10px;align-items:flex-end">
+        <div class="fi" style="flex:1"><label class="fl">API Key</label><input id="tdi" type="password" placeholder="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" value="${tdkey}"></div>
+        <button class="btn btn-p" onclick="applyTdKey()">Guardar</button>
+      </div>
+      <div id="tdmsg" style="font-family:var(--mono);font-size:9px;margin-top:8px"></div>
     </div>`;
 }
 
@@ -1288,6 +1345,16 @@ function applyKey(){
   if(!v){msg.textContent='Introduce una key válida';msg.style.color='var(--dn)';return}
   saveKey(v);
   msg.textContent='Key guardada. Actualizando precios…';msg.style.color='var(--up)';
+  setTimeout(()=>{msg.textContent=''},4000);
+  fetchAll();
+}
+
+function applyTdKey(){
+  const v=document.getElementById('tdi').value.trim();
+  const msg=document.getElementById('tdmsg');
+  if(!v){msg.textContent='Introduce una key válida';msg.style.color='var(--dn)';return}
+  saveTdKey(v);
+  msg.textContent='Key de Twelve Data guardada ✓';msg.style.color='var(--up)';
   setTimeout(()=>{msg.textContent=''},4000);
   fetchAll();
 }
