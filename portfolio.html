@@ -569,12 +569,14 @@ async function fetchAll(){
   }
   // Fetch FX rates for all currencies
   await fetchFxRates();
-  // Fetch quotes
+  // Fetch quotes respecting each position's preferred source
   for(const sym of syms){
-    try{await fetchQuote(sym)}catch{}
-    await sleep(120);
+    const pos=pf.find(p=>p.symbol===sym);
+    const source=pos?.priceSource||'finnhub';
+    try{await fetchQuoteBySource(sym,source)}catch{}
+    await sleep(150);
   }
-  // Fetch dividends once
+  // Fetch dividends once (always via Finnhub)
   for(const sym of syms){
     if(divs[sym]===undefined){
       await fetchDividend(sym);
@@ -1054,8 +1056,15 @@ function renderPos(){
       <div class="add-form-body" id="add-form-body">
         <div class="fg" style="margin-bottom:10px">
           <div class="fi">
+            <label class="fl">Fuente de datos</label>
+            <select id="fsource" style="padding:8px 10px;font-family:var(--mono);font-size:11px;background:var(--s3);border:1px solid var(--b1);border-radius:var(--r);color:var(--fg)">
+              <option value="finnhub">Finnhub (USA · Europa principal)</option>
+              <option value="twelvedata">Twelve Data (BME Madrid · Europa)</option>
+            </select>
+          </div>
+          <div class="fi">
             <label class="fl">Ticker</label>
-            <input id="fsym" list="sdl" placeholder="AAPL, ASML, SAN.MC…" style="text-transform:uppercase" onblur="lookupTicker()" onkeydown="if(event.key==='Enter')lookupTicker()">
+            <input id="fsym" list="sdl" placeholder="AAPL, ASML, CBAV…" style="text-transform:uppercase" onkeydown="if(event.key==='Enter')lookupTicker()">
             <datalist id="sdl"><option value="AAPL"><option value="MSFT"><option value="GOOGL"><option value="AMZN"><option value="TSLA"><option value="META"><option value="NVDA"><option value="NFLX"><option value="V"><option value="JPM"><option value="JNJ"><option value="PFE"><option value="ASML"><option value="SAP"><option value="MC.PA"><option value="SAN.MC"><option value="IBE.MC"><option value="REP.MC"><option value="SHEL.L"><option value="BP.L"></datalist>
           </div>
           <div class="fi"><label class="fl">Acciones</label><input type="number" id="fshares" placeholder="10" step="any" min="0"></div>
@@ -1067,10 +1076,11 @@ function renderPos(){
         </div>
         <div id="lookup-spin" style="font-family:var(--mono);font-size:9px;color:var(--fg3);margin-top:6px;display:none"></div>
         <div class="fa" style="margin-top:12px">
-          <button class="btn btn-p" onclick="addPos()">Añadir</button>
+          <button class="btn btn-p" onclick="lookupTicker()">Buscar</button>
+          <button class="btn" onclick="addPos()" style="margin-left:6px">Añadir</button>
           <span id="fmsg" class="fm"></span>
         </div>
-        <div class="fn" style="margin-top:10px">// Tab o Enter en el ticker para autocompletar nombre, país y divisa · BEP en divisa local del activo</div>
+        <div class="fn" style="margin-top:10px">// Selecciona la fuente · pulsa Buscar para autocompletar · luego Añadir</div>
       </div>
     </div>
     <div class="sec-row"><span class="sec-l">${pf.length} posicion${pf.length!==1?'es':''}</span>${!noKey?`<span class="sec-l" style="color:var(--fg3)">Finnhub · live</span>`:''}</div>
@@ -1304,24 +1314,39 @@ let _profileCache={};
 async function lookupTicker(){
   const sym=(document.getElementById('fsym')?.value||'').trim().toUpperCase();
   if(!sym)return;
+  const source=document.getElementById('fsource')?.value||'finnhub';
   const card=document.getElementById('lookup-card');
   const spin=document.getElementById('lookup-spin');
   if(!card)return;
-  if(!fkey){card.className='lookup-card';spin.style.display='none';return}
-  if(_profileCache[sym]){showLookup(sym,_profileCache[sym]);return}
   card.className='lookup-card';
-  spin.style.display='block';spin.textContent='Buscando '+sym+'…';spin.style.color='var(--fg3)';
-  const profile=await fetchProfile(sym);
+  spin.style.display='block';spin.textContent='Buscando '+sym+' en '+(source==='twelvedata'?'Twelve Data':'Finnhub')+'…';spin.style.color='var(--fg3)';
+
+  let profile=null;
+  if(source==='twelvedata'){
+    profile=await fetchProfileTwelveData(sym);
+  } else {
+    if(!fkey){spin.style.display='none';return}
+    try{
+      const r=await fetch(`https://finnhub.io/api/v1/stock/profile2?symbol=${sym}&token=${fkey}`);
+      const d=await r.json();
+      if(d&&d.name){
+        const currency=(d.currency||'USD').toUpperCase();
+        if(!prices[sym])prices[sym]={price:0,change:0,currency};
+        else prices[sym].currency=currency;
+        profile={name:d.name,country:d.country||'',exchange:d.exchange||'',logo:d.logo||'',currency};
+      }
+    }catch{}
+  }
+
   spin.style.display='none';
   if(profile){
-    _profileCache[sym]=profile;showLookup(sym,profile);
-  }else{
-    // Not found but allow adding anyway — price will be fetched on add
+    _profileCache[sym]={...profile,source};
+    showLookup(sym,profile);
+  } else {
     spin.style.display='block';
-    spin.textContent='No se encontró perfil para "'+sym+'" — puedes añadirlo igualmente y se intentará obtener el precio al guardar';
+    spin.textContent='No se encontró "'+sym+'" en '+(source==='twelvedata'?'Twelve Data':'Finnhub')+' — puedes añadirlo igualmente';
     spin.style.color='rgba(255,200,0,.8)';
-    // Store a minimal profile so addPos works
-    _profileCache[sym]={name:sym,country:'',exchange:'',logo:'',currency:'EUR',source:'manual'};
+    _profileCache[sym]={name:sym,country:'',exchange:'',logo:'',currency:'EUR',source};
   }
 }
 
@@ -1363,20 +1388,21 @@ async function addPos(){
   const sym=(document.getElementById('fsym').value||'').trim().toUpperCase();
   const shares=parseFloat(document.getElementById('fshares').value);
   const avgPrice=parseFloat(document.getElementById('fprice').value);
+  const source=document.getElementById('fsource')?.value||'finnhub';
   const msg=document.getElementById('fmsg');
   if(!sym||isNaN(shares)||shares<=0||isNaN(avgPrice)||avgPrice<=0){msg.textContent='Completa todos los campos';msg.style.color='var(--dn)';return}
   const profile=_profileCache[sym]||null;
   const name=profile?.name||sym;
   const country=profile?.country||'';
-  const currency=(profile?.currency||'USD').toUpperCase();
+  const currency=(profile?.currency||'EUR').toUpperCase();
   const logo=profile?.logo||'';
   const ex=pf.findIndex(p=>p.symbol===sym);
   if(ex>=0){
     const o=pf[ex];const ts=o.shares+shares;
-    pf[ex]={...o,shares:ts,avgPrice:parseFloat(((o.shares*o.avgPrice+shares*avgPrice)/ts).toFixed(6)),name,country,currency,logo};
+    pf[ex]={...o,shares:ts,avgPrice:parseFloat(((o.shares*o.avgPrice+shares*avgPrice)/ts).toFixed(6)),name,country,currency,logo,priceSource:source};
     msg.textContent='Actualizado';
   }else{
-    pf.push({symbol:sym,name,country,currency,logo,shares,avgPrice});
+    pf.push({symbol:sym,name,country,currency,logo,shares,avgPrice,priceSource:source});
     msg.textContent='Añadido';
   }
   msg.style.color='var(--up)';save();
@@ -1385,20 +1411,31 @@ async function addPos(){
   const spin=document.getElementById('lookup-spin');if(spin)spin.style.display='none';
   setTimeout(()=>{msg.textContent=''},3000);
   renderPos();
-  // Re-open form after render and show loading msg
   const body=document.getElementById('add-form-body');
   const arrow=document.getElementById('add-form-arrow');
   if(body){body.classList.add('open');if(arrow)arrow.textContent='▾';}
-  if(fkey){
-    const msg2=document.getElementById('fmsg');
-    if(msg2){msg2.textContent='Obteniendo precio y dividendo…';msg2.style.color='var(--fg3)';}
-    try{await fetchQuote(sym);await sleep(120);await fetchDividend(sym)}catch{}
-    recHist();renderAll();
-    if(msg2){msg2.textContent='Listo';msg2.style.color='var(--up)';setTimeout(()=>{if(msg2)msg2.textContent=''},2000);}
-  }
+  const msg2=document.getElementById('fmsg');
+  if(msg2){msg2.textContent='Obteniendo precio…';msg2.style.color='var(--fg3)';}
+  try{
+    await fetchQuoteBySource(sym,source);
+    await sleep(120);
+    if(fkey)await fetchDividend(sym);
+  }catch{}
+  recHist();renderAll();
+  if(msg2){msg2.textContent='Listo';msg2.style.color='var(--up)';setTimeout(()=>{if(msg2)msg2.textContent=''},2000);}
 }
 
-function saveShares(sym,v){
+async function fetchQuoteBySource(sym, source){
+  if(source==='twelvedata'){
+    const td=await fetchQuoteTwelveData(sym);
+    prices[sym]={...td,source:'twelvedata'};
+    const idx=pf.findIndex(p=>p.symbol===sym);
+    if(idx>=0&&!pf[idx].currency){pf[idx].currency=td.currency;save()}
+    return;
+  }
+  // default: finnhub with fallbacks
+  await fetchQuote(sym);
+}
   const idx=pf.findIndex(p=>p.symbol===sym);
   if(idx<0)return;
   const val=parseFloat(v);
