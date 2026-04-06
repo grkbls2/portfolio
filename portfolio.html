@@ -1436,6 +1436,8 @@ async function fetchQuoteBySource(sym, source){
   // default: finnhub with fallbacks
   await fetchQuote(sym);
 }
+
+function saveShares(sym,v){
   const idx=pf.findIndex(p=>p.symbol===sym);
   if(idx<0)return;
   const val=parseFloat(v);
